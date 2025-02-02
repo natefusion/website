@@ -1,8 +1,7 @@
 body {
     font-family: sans-serif;
-    background: #dcdacf;
-    /* #f5f6f8; */
-    color: black;
+    background: #e0dedb;
+    color: #212121;
     min-height: 93vh;
 }
 
@@ -17,10 +16,74 @@ nav, main, h1, h2, h3, h4 {
 	text-justify: inter-word;
 }
 
-a:link, a:visited {
-    color: black;
+h3 {
+    padding-left: 0.1em;
+    margin-bottom: 0.5em;
+    margin-top: 0.5em;
+    border: 2px solid;
+    border-radius: 4px;
+    box-shadow: 2px 2px 0 0 #212121;
+    line-height: 1.618;
+    border-color: #212121;
+    color: #212121;
+}
+
+.red {
+    background: #c11f32;
+    color: #e0dedb;
+}
+
+.blue {
+    background: #174897;
+    color: #e0dedb;
+}
+
+.green {
+    background: #00784c;
+    color: #e0dedb;
+}
+
+a {
+  flex: 1;
+  text-decoration: none;
+  outline-color: transparent;
+  text-align: center;
+  line-height: 2;
+  color: #212121;
+  border: 2px dashed #0000;
+  font-weight: bold;
+}
+
+.me {
+    border-radius: 4px;
+    background: #212121;
+    color: #e0dedb;
 }
 
 a:hover {
-    color: #7e244d;
+    border-radius: 4px;
+    background: #212121;
+    color: #e0dedb;
 }
+
+a:active {
+    border-radius: 4px;
+}
+
+pre {
+    padding-top: .5em;
+    padding-bottom: .5em;
+    border-radius: 4px;
+    border: 2px solid;
+    box-shadow: 2px 2px 0 0 #212121;
+    overflow: auto;
+}
+
+.text-viewer {
+    width: 100%;
+    margin: 20px auto;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: white;
+}
+
