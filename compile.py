@@ -80,6 +80,6 @@ def main():
     
     collect_imports(collect_files(), output_dir)
 
-    
-if __name__ == 'main':
+
+if __name__ == '__main__':
     main()
