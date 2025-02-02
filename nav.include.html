@@ -1,0 +1,21 @@
+<nav>
+  <a href="index.html">ABOUT</a>
+  <a href="projects.html">PROJECTS</a>
+  <a href="https://flpoly-my.sharepoint.com/personal/npiel0828_floridapoly_edu/Documents/resume.pdf">RESUME</a>
+</nav>
+<script>
+  /* gipity */
+  document.addEventListener('DOMContentLoaded', function() {
+      const currentPage = window.location.pathname; // Get the current path
+
+      const navLinks = document.querySelectorAll('nav a'); // Select all links in your navbar
+
+      navLinks.forEach(link => {
+          const linkPath = new URL(link.href).pathname; // Extract the path from the link's href
+
+          if (linkPath === currentPage || (linkPath !== "/" && currentPage.startsWith(linkPath + "/"))) {
+              link.classList.add('me'); // Add the 'active' class to the matching link
+          }
+      });
+});
+</script>

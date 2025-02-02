@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 def collect_files(d = '.'):
-    return list(filter(lambda x: x[-5:] == '.html' or x[-4:] == '.css', os.listdir(d)))
+    return list(filter(lambda x: (x[-5:] == '.html' or x[-4:] == '.css') and (x[-13:] != '.include.html' or x[-12:] == '.include.css'), os.listdir(d)))
 
 
 def locate_include(substr):
