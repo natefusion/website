@@ -2,6 +2,9 @@ import os
 import string
 from pathlib import Path
 
+# todo:
+# <!-- @datetime -->
+# this will be replaced with the date the particular file was changed
 
 def collect_files(d = '.'):
     return list(filter(lambda x: (x[-5:] == '.html' or x[-4:] == '.css') and (x[-13:] != '.include.html' or x[-12:] == '.include.css'), os.listdir(d)))

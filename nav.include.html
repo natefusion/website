@@ -13,7 +13,8 @@
       navLinks.forEach(link => {
           const linkPath = new URL(link.href).pathname; // Extract the path from the link's href
 
-          if (linkPath === currentPage || (linkPath !== "/" && currentPage.startsWith(linkPath + "/"))) {
+          const home_page = linkPath == "index.html" && currentPage == "/";
+          if (home_page || linkPath === currentPage || (linkPath !== "/" && currentPage.startsWith(linkPath + "/"))) {
               link.classList.add('me'); // Add the 'active' class to the matching link
           }
       });
