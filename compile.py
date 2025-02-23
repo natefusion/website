@@ -9,6 +9,9 @@ from pygments.formatters import HtmlFormatter
 # todo:
 # <!-- @datetime -->
 # this will be replaced with the date the particular file was changed
+def get_datetime(filename):
+    return time.strftime("%A, %B %d %Y", time.strptime(time.ctime(os.path.getmtime(filename))))
+
 
 def collect_files(d = '.'):
     return list(filter(lambda x: (x[-5:] == '.html' or x[-4:] == '.css') and (x[-13:] != '.include.html' or x[-12:] == '.include.css'), os.listdir(d)))
