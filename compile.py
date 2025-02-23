@@ -2,6 +2,10 @@ import os
 import string
 from pathlib import Path
 
+from pygments import highlight
+from pygments.lexers import get_lexer_for_filename
+from pygments.formatters import HtmlFormatter
+
 # todo:
 # <!-- @datetime -->
 # this will be replaced with the date the particular file was changed
@@ -10,8 +14,9 @@ def collect_files(d = '.'):
     return list(filter(lambda x: (x[-5:] == '.html' or x[-4:] == '.css') and (x[-13:] != '.include.html' or x[-12:] == '.include.css'), os.listdir(d)))
 
 
-def locate_include(substr):
-    start = substr.find('<!-- @include')
+def locate_keyword(substr):
+    start_str = '<!-- @'
+    start = substr.find(start_str)
     if start == -1:
         return None
     else:
@@ -19,19 +24,16 @@ def locate_include(substr):
         if end == -1:
             return None
         else:
-            return start, end+3
+            option_start = start + len(start_str)
+            option_end = option_start + substr[option_start:].find(' ')
+            option = substr[option_start:option_end]
+            return start, end+3, option
 
 
 def extract_filename_from_include(substr):
-    start = 15
-    end = -5
-
-    if substr[start-2:start] != ' \'':
-        print('WUT in tarnation:', substr[start-2:start])
-
-    if substr[end:end+2] != '\' ':
-        print('WUT in tarnation:', substr[end:end+2])
-    return substr[15:-5]
+    start = substr.find('\'') + 1
+    end = start + substr[start:].find('\'')
+    return substr[start:end]
 
 
 def collect_imports_from_file(buf):
@@ -39,10 +41,10 @@ def collect_imports_from_file(buf):
     i = 0
     
     while i < len(buf):
-        pos = locate_include(buf[i:])
+        pos = locate_keyword(buf[i:])
         if pos != None:
-            start, end = pos
-            occurrences.append((extract_filename_from_include(buf[i+start:i+end]), start, end))
+            start, end, option = pos
+            occurrences.append((extract_filename_from_include(buf[i+start:i+end]), start, end, option))
             i += end
         else:
             break
@@ -56,16 +58,23 @@ def replace_include(output_path, file_contents, includes):
             of.write(file_contents)
         else:
             prev = 0
-            for include_path, start, end in includes:
-                of.write(file_contents[prev:start])
-                with open(include_path) as include_contents:
-                    include_data = include_contents.read()
-                    # remove final newline
-                    if include_data[-1] == '\n':
-                        include_data = include_data[:-1]
-                    of.write(include_data)
-                    prev = end
-            of.write(file_contents[prev:])
+            for include_path, start, end, option in includes:
+                if option == 'include' or option == 'code':
+                    of.write(file_contents[prev:start])
+                    with open(include_path) as include_contents:
+                        include_data = include_contents.read()
+                        if option == 'code':
+                            lexer = get_lexer_for_filename(include_path)
+                            formatter = HtmlFormatter(noclasses=True, style='algol_nu', nobackground=True, cssclass='highlight', linenos='table')
+                            include_data = highlight(include_data, lexer, formatter)
+                        # remove final newline
+                        if include_data[-1] == '\n':
+                            include_data = include_data[:-1]
+                            of.write(include_data)
+                            prev = end
+                            of.write(file_contents[prev:])
+                elif option == 'datetime':
+                    print("datetime not implemented! Ignored")
 
             
 def collect_imports(files, output_dir):
@@ -77,6 +86,9 @@ def collect_imports(files, output_dir):
 
 
 def main():
+    # the following highlights code
+    # python3 -m pygments -f html -O "noclasses=True" ./pygments/cmdline.py > output.html
+
     output_dir = Path('build')
     if not output_dir.is_dir():
         os.makedirs(output_dir)
