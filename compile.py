@@ -5,7 +5,35 @@ from pathlib import Path
 from pygments import highlight
 from pygments.lexers import get_lexer_for_filename
 from pygments.formatters import HtmlFormatter
+from dataclasses import dataclass
+from enum import Enum
+from pathlib import Path
+import time
 
+class Keyword(Enum):
+    code = 0
+    include = 1
+    datetime = 2
+
+    
+def keyword_is_valid(keyword):
+    if keyword == 'code':
+        return Keyword.code
+    elif keyword == 'include':
+        return Keyword.include
+    elif keyword == 'datetime':
+        return Keyword.datetime
+    else:
+        return None
+
+
+@dataclass
+class Keyword_Info:
+    start: int
+    end: int
+    keyword: Keyword
+
+    
 # todo:
 # <!-- @datetime -->
 # this will be replaced with the date the particular file was changed
@@ -13,90 +41,134 @@ def get_datetime(filename):
     return time.strftime("%A, %B %d %Y", time.strptime(time.ctime(os.path.getmtime(filename))))
 
 
-def collect_files(d = '.'):
-    return list(filter(lambda x: (x[-5:] == '.html' or x[-4:] == '.css') and (x[-13:] != '.include.html' or x[-12:] == '.include.css'), os.listdir(d)))
+def collect_files(output_dir, d = '.'):
+    def compare_date_modified_with_build_directory(handmade_file, generated_file):
+        if not generated_file.exists():
+            return True
+    
+        hf = os.path.getmtime(handmade_file)
+        gf = os.path.getmtime(generated_file)
+        return hf > gf
+    
+    def valid_file(filename):
+        filetypes_to_check = ['.html', '.css']
+        for i in filetypes_to_check:
+            j = '.include' + i
+            file_modified = compare_date_modified_with_build_directory(filename, Path(output_dir, filename))
+            correct_filetype = filename[-len(i):] == i
+            incorrect_filetype = filename[-len(j):] == j
+            if correct_filetype and not file_modified:
+                print(f'Skipping {filename}, it hasn\'t changed')
+            if  correct_filetype and file_modified and not incorrect_filetype:
+                return True
+        return False
+    
+    return list(filter(valid_file, os.listdir(d)))
 
 
-def locate_keyword(substr):
-    start_str = '<!-- @'
-    start = substr.find(start_str)
-    if start == -1:
-        return None
-    else:
-        end = start + substr[start:].find('-->')
-        if end == -1:
-            return None
-        else:
-            option_start = start + len(start_str)
-            option_end = option_start + substr[option_start:].find(' ')
-            option = substr[option_start:option_end]
-            return start, end+3, option
-
-
-def extract_filename_from_include(substr):
+def extract_filename(substr):
     start = substr.find('\'') + 1
     end = start + substr[start:].find('\'')
     return substr[start:end]
 
 
-def collect_imports_from_file(buf):
-    occurrences = []
+def locate_keyword(filename, file_contents, i):
+    start_str = '<!-- @'
+    start = file_contents[i:].find(start_str)
+    if start == -1:
+        return None, False
+
+    start += i
+    end_str = '-->'
+    end = file_contents[start:].find('-->')
+    if end == -1:
+        print(f'Error:\n{filename}:\n{file_contents[start:]}\nThe comment didn\'t end!')
+        return None, True
+
+    end += start + len(end_str)
+    keyword_start = start + len(start_str)
+    keyword_end = keyword_start + file_contents[keyword_start:].find(' ')
+    raw_keyword = file_contents[keyword_start:keyword_end]
+    keyword = keyword_is_valid(raw_keyword)
+    if keyword == None:
+        print(f'Error:\n{filename}:\n{file_contents[start:end]}\nInvalid keyword \'{keyword}\' on the above line')
+        return None, True
+    else:
+        return Keyword_Info(keyword=keyword, start=start, end=end), False
+
+
+def parse_file(filename, file_contents):
     i = 0
-    
-    while i < len(buf):
-        pos = locate_keyword(buf[i:])
-        if pos != None:
-            start, end, option = pos
-            occurrences.append((extract_filename_from_include(buf[i+start:i+end]), start, end, option))
-            i += end
+    occurrences = []
+    had_error = False
+    while i < len(file_contents):
+        keyword_info, err = locate_keyword(filename, file_contents, i)
+        if err:
+            had_error = True
+        if keyword_info != None:
+            occurrences.append(keyword_info)
+            i += keyword_info.end
         else:
             break
-    return occurrences
+    return occurrences, had_error
 
 
-def replace_include(output_path, file_contents, includes):
-    print('Writing to', output_path)
-    with open(output_path, 'w') as of:
-        if len(includes) == 0:
-            of.write(file_contents)
-        else:
-            prev = 0
-            for include_path, start, end, option in includes:
-                if option == 'include' or option == 'code':
-                    of.write(file_contents[prev:start])
-                    with open(include_path) as include_contents:
-                        include_data = include_contents.read()
-                        if option == 'code':
-                            lexer = get_lexer_for_filename(include_path)
-                            formatter = HtmlFormatter(noclasses=True, style='algol_nu', nobackground=True, cssclass='highlight', linenos='table')
-                            include_data = highlight(include_data, lexer, formatter)
-                        # remove final newline
-                        if include_data[-1] == '\n':
-                            include_data = include_data[:-1]
-                            of.write(include_data)
-                            prev = end
-                            of.write(file_contents[prev:])
-                elif option == 'datetime':
-                    print("datetime not implemented! Ignored")
+def replace_keywords(output_file, filename, file_contents, keywords):
+    cursor = 0
+
+    def read_file_skip_newline(f):
+        data = f.read()
+        if data[-1] == '\n':
+            data = data[:-1]
+        return data
+
+    for keyword_info in keywords:
+        include_data = None
+        output_file.write(file_contents[cursor:keyword_info.start])
+
+        if Keyword.include == keyword_info.keyword:
+            print('\tIncluding text')
+            keyword_str = file_contents[keyword_info.start:keyword_info.end]
+            with open(extract_filename(keyword_str)) as include_file:
+                include_data = read_file_skip_newline(include_file)
+                        
+        elif Keyword.code == keyword_info.keyword:
+            print('\thighlighting code')
+            keyword_str = file_contents[keyword_info.start:keyword_info.end]
+            code_path = extract_filename(keyword_str)
+            with open(code_path) as include_file:
+                raw_data = read_file_skip_newline(include_file)
+                lexer = get_lexer_for_filename(code_path)
+                formatter = HtmlFormatter(noclasses=True, style='algol_nu', nobackground=True, cssclass='highlight', linenos='table')
+                include_data = highlight(raw_data, lexer, formatter)
+                        
+        elif Keyword.datetime == keyword_info.keyword:
+            print('\tGetting the date')
+            include_data = get_datetime(filename)
+
+        output_file.write(include_data)
+        cursor = keyword_info.end
+            
+    output_file.write(file_contents[cursor:])
 
             
-def collect_imports(files, output_dir):
-    for fn in files:
-        with open(fn) as f:
-            buf = f.read()
-            includes = collect_imports_from_file(buf)
-            replace_include(Path(output_dir, fn), buf, includes)
-
-
 def main():
-    # the following highlights code
-    # python3 -m pygments -f html -O "noclasses=True" ./pygments/cmdline.py > output.html
-
     output_dir = Path('build')
     if not output_dir.is_dir():
         os.makedirs(output_dir)
-    
-    collect_imports(collect_files(), output_dir)
+
+    files =  [(x,open(x).read()) for x in collect_files(output_dir)]
+
+    for filename, file_contents in files:
+        keywords, err = parse_file(filename, file_contents)
+
+        if err:
+            continue
+        
+        output_path = Path(output_dir, filename)
+        with open(output_path, 'w') as output_file:
+            print('Writing to', output_path)
+            replace_keywords(output_file, filename, file_contents, keywords)
 
 
 if __name__ == '__main__':
