@@ -42,24 +42,13 @@ def get_datetime(filename):
 
 
 def collect_files(output_dir, d = '.'):
-    def compare_date_modified_with_build_directory(handmade_file, generated_file):
-        if not generated_file.exists():
-            return True
-    
-        hf = os.path.getmtime(handmade_file)
-        gf = os.path.getmtime(generated_file)
-        return hf > gf
-    
     def valid_file(filename):
-        filetypes_to_check = ['.html', '.css']
+        filetypes_to_check = ['.html', '.css', '.js']
         for i in filetypes_to_check:
             j = '.include' + i
-            file_modified = compare_date_modified_with_build_directory(filename, Path(output_dir, filename))
-            correct_filetype = filename[-len(i):] == i
-            incorrect_filetype = filename[-len(j):] == j
-            if correct_filetype and not file_modified:
-                print(f'Skipping {filename}, it hasn\'t changed')
-            if  correct_filetype and file_modified and not incorrect_filetype:
+            regular_filetype = filename[-len(i):] == i
+            snippet_filetype = filename[-len(j):] == j
+            if regular_filetype and not snippet_filetype:
                 return True
         return False
     
