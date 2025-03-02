@@ -10,6 +10,9 @@ from enum import Enum
 from pathlib import Path
 import time
 
+output_dir = Path('build')
+input_dir = Path('src')
+
 class Keyword(Enum):
     code = 0
     include = 1
@@ -41,24 +44,27 @@ def get_datetime(filename):
     return time.strftime("%A, %B %d %Y", time.strptime(time.ctime(os.path.getmtime(filename))))
 
 
-def collect_files(output_dir, d = '.'):
+def collect_files(output_dir, input_dir):
     def valid_file(filename):
+        suffixes = filename.suffixes
+        if len(suffixes) == 0:
+            return False
         filetypes_to_check = ['.html', '.css', '.js']
-        for i in filetypes_to_check:
-            j = '.include' + i
-            regular_filetype = filename[-len(i):] == i
-            snippet_filetype = filename[-len(j):] == j
-            if regular_filetype and not snippet_filetype:
-                return True
-        return False
+        regular_filetype = suffixes[-1] in filetypes_to_check
+        snippet_filetype = suffixes[0] == '.include'
+        return regular_filetype and not snippet_filetype
     
-    return list(filter(valid_file, os.listdir(d)))
+    return list(filter(valid_file, list(Path(input_dir).rglob('*'))))
 
 
-def extract_filename(substr):
+def extract_filename(cwd, substr):
     start = substr.find('\'') + 1
     end = start + substr[start:].find('\'')
-    return substr[start:end]
+    f = substr[start:end]
+    if f[0] == '/':
+        return Path(input_dir, f[1:])
+    else:
+        return Path(cwd, f)
 
 
 def locate_keyword(filename, file_contents, i):
@@ -103,6 +109,7 @@ def parse_file(filename, file_contents):
 
 
 def replace_keywords(output_file, filename, file_contents, keywords):
+    cwd = Path(filename.parent)
     cursor = 0
 
     def read_file_skip_newline(f):
@@ -118,13 +125,13 @@ def replace_keywords(output_file, filename, file_contents, keywords):
         if Keyword.include == keyword_info.keyword:
             print('\tIncluding text')
             keyword_str = file_contents[keyword_info.start:keyword_info.end]
-            with open(extract_filename(keyword_str)) as include_file:
+            with open(extract_filename(cwd, keyword_str)) as include_file:
                 include_data = read_file_skip_newline(include_file)
                         
         elif Keyword.code == keyword_info.keyword:
             print('\thighlighting code')
             keyword_str = file_contents[keyword_info.start:keyword_info.end]
-            code_path = extract_filename(keyword_str)
+            code_path = extract_filename(cwd, keyword_str)
             with open(code_path) as include_file:
                 raw_data = read_file_skip_newline(include_file)
                 lexer = get_lexer_for_filename(code_path)
@@ -142,11 +149,10 @@ def replace_keywords(output_file, filename, file_contents, keywords):
 
             
 def main():
-    output_dir = Path('build')
     if not output_dir.is_dir():
         os.makedirs(output_dir)
 
-    files =  [(x,open(x).read()) for x in collect_files(output_dir)]
+    files =  [(x,open(x).read()) for x in collect_files(output_dir, input_dir)]
 
     for filename, file_contents in files:
         keywords, err = parse_file(filename, file_contents)
@@ -154,7 +160,8 @@ def main():
         if err:
             continue
         
-        output_path = Path(output_dir, filename)
+        output_path = Path(output_dir, Path(*filename.parts[1:]))
+        Path(output_path.parent).mkdir(parents=True, exist_ok=True)
         with open(output_path, 'w') as output_file:
             print('Writing to', output_path)
             replace_keywords(output_file, filename, file_contents, keywords)
