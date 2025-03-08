@@ -1,6 +1,5 @@
 :root {
-    /* #e0dedb */
-    --background: #E0dedb;/*#e8d1b3;*/
+    --background: #e0dedb;/*#e8d1b3;*/
     --black: #212121;
     --red: #c11f32;
     --blue: #174897;
@@ -9,9 +8,6 @@
     --width: 50em;
 }
 
-h1, h2, h3, h4 {
-	margin: auto;
-}
 body {
     font-family: sans-serif;
     background: var(--background);
@@ -23,6 +19,8 @@ body {
     margin-right: auto;
     text-align: justify;
     line-height: 1.618;
+    padding-left: 1.618%;
+    padding-right: 1.618%;
 }
 
 h3 {
