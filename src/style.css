@@ -1,19 +1,28 @@
+:root {
+    /* #e0dedb */
+    --background: #E0dedb;/*#e8d1b3;*/
+    --black: #212121;
+    --red: #c11f32;
+    --blue: #174897;
+    --green: #00784c;
+    --yellow: #FFB700;
+    --width: 50em;
+}
+
+h1, h2, h3, h4 {
+	margin: auto;
+}
 body {
     font-family: sans-serif;
-    background: #e0dedb;
-    color: #212121;
+    background: var(--background);
+    color: var(--black);
     min-height: 93vh;
-}
-
-hr {
-    max-width: 40em;
-}
-
-nav, main, h1, h2, h3, h4 {
-	margin: auto;
-	max-width: 40em;
-	text-align: justify;
-	text-justify: inter-word;
+    counter-reset: sidenote-counter;
+    max-width: var(--width);
+    margin-left: auto;
+    margin-right: auto;
+    text-align: justify;
+    line-height: 1.618;
 }
 
 h3 {
@@ -22,68 +31,143 @@ h3 {
     margin-top: 0.5em;
     border: 2px solid;
     border-radius: 4px;
-    box-shadow: 2px 2px 0 0 #212121;
-    line-height: 1.618;
-    border-color: #212121;
-    color: #212121;
+    box-shadow: 2px 2px 0 0 var(--black);
+    border-color: var(--black);
+    color: var(--black);
 }
 
 .red {
-    background: #c11f32;
-    color: #e0dedb;
+    background: var(--red);
+    color: white;
 }
 
 .blue {
-    background: #174897;
-    color: #e0dedb;
+    background: var(--blue);
+    color: white;
 }
 
 .green {
-    background: #00784c;
-    color: #e0dedb;
+    background: var(--green);
+    color: white;
+}
+
+.yellow {
+    background: var(--yellow);
+    color: var(--black);
 }
 
 a {
   flex: 1;
-  text-decoration: none;
   outline-color: transparent;
   text-align: center;
   line-height: 2;
-  color: #212121;
+  color: var(--black);
   border: 2px dashed #0000;
   font-weight: bold;
 }
 
 .me {
     border-radius: 4px;
-    background: #212121;
-    color: #e0dedb;
+    background: var(--black);
+    color: white;
+    text-decoration: none;
 }
 
 a:hover {
     border-radius: 4px;
-    background: #212121;
-    color: #e0dedb;
-}
-
-a:active {
-    border-radius: 4px;
+    background: var(--black);
+    color: white;
+    text-decoration: none;
 }
 
 .highlight {
-    padding-top: .5em;
-    padding-bottom: .5em;
+    padding-left: 0.5em;
     border-radius: 4px;
     border: 2px solid;
-    box-shadow: 2px 2px 0 0 #212121;
+    box-shadow: 2px 2px 0 0 var(--black);
     overflow: auto;
 }
 
-.text-viewer {
-    width: 100%;
-    margin: 20px auto;
-    border: 1px solid #ccc;
+.highlightraw {
+    background: #FFFFFF;
+    padding-left: .1em;
+    padding-right: .1em;
+    border: 2px solid;
     border-radius: 4px;
-    background-color: white;
 }
 
+.sidenote,
+.marginnote {
+    float: right;
+    clear: right;
+    margin-right: -24em;
+    margin-top: 0.3rem;
+    margin-bottom: 0;
+    width: 20em;
+    vertical-align: baseline;
+    position: relative;
+}
+
+.marginnote:before {
+    content: "\235D  ";
+}
+
+input.margin-toggle {
+    display: none;
+}
+
+label.sidenote-number {
+    display: inline-block;
+    max-height: 2em;
+}
+
+label.margin-toggle:not(.sidenote-number) {
+    display: none;
+}
+
+.sidenote-number {
+    counter-increment: sidenote-counter;
+}
+
+.sidenote-number:after,
+.sidenote:before {
+    position: relative;
+    vertical-align: baseline;
+}
+
+.sidenote-number:after {
+    content: counter(sidenote-counter);
+    top: -0.5rem;
+    left: 0.1rem;
+}
+
+.sidenote:before {
+    content: counter(sidenote-counter) " ";
+    top: -0.5rem;
+}
+
+/* The mobile fallback: */
+@media (max-width: 98em) { /* 98em == 50em + 24em + 20em + 4em (see .sidenote)*/
+    label.margin-toggle:not(.sidenote-number) {
+        display: inline;
+    }
+
+    .sidenote {
+        display: none;
+    }
+
+    .margin-toggle:checked + .sidenote,
+    .marginnote {
+        display: block;
+        float: left;
+        clear: both;
+        width: 95%;
+        margin: 1rem 2.5%;
+        vertical-align: baseline;
+        position: relative;
+    }
+
+    label.sidenote-number {
+        text-decoration: underline;
+    }
+}

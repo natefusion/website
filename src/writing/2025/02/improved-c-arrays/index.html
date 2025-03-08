@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en-US">
+    <head>
+      <title>NCP Writing: Improved C arrays</title>
+      <link rel="stylesheet" href="/style.css">
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <link rel="icon" type="image/png" sizes="32x32" href="/ncp.png">
+    </head>
+    <body>
+      <!-- @include '/nav.include.html' -->
+      <main>
+        <h3 class="green">Improved C arrays</h3>
+        <hr>
+        <i>Some simple macros and functions that make using arrays in C nicer.</i>
+        <hr>
+        <p>
+          I took an operating systems course last semester. In that class my professor assigned a few C programming projects that would be a lot easier if C had builtin dynamic arrays. During that time I had been reading about implementing arenas and dynamic arrays in C,
+          <!-- @sidenote <a href="https://nullprogram.com/blog/2023/10/05/">https://nullprogram.com/blog/2023/10/05/</a> -->
+          so I thought why not make something for myself to make array handling easier for the assignment.
+        </p>
+        <p>
+          I wanted these qualities:
+          <ul>
+            <li>Append elements from arrays</li>
+            <li>Works with any data type</li>
+            <li>Bundle array lifetimes together</li>
+            <li>Bounds checking</li>
+          </ul>
+        </p>
+        <!-- @code-lit c
+             #define Vec_define(T, name) \
+                 typedef struct { T *data; int len; int cap; } name
+          -->
+        <p>
+          I started with a macro to make a new array container for the specified data type. This is basically the same as <!-- @code-raw cpp std::vector<T> -->.
+        </p>
+        <!-- @code-lit c
+             #define is_pointer(p)  (__builtin_classify_type(p) == 5)
+             #define maybe_ref(x) __builtin_choose_expr(is_pointer((x)), (x), &(x))
+
+             #define len(x) (maybe_ref((x))->len)
+             #define cap(x) (maybe_ref((x))->cap)
+             #define data(x) (maybe_ref((x))->data)
+          -->
+        <p>
+          These are special macros to access each of the members regardless of whether it is a pointer or not. The builtin gcc function <!-- @code-raw c __builtin_classify_type --> return 5 when the variable is a some pointer. The builtin <!-- @code-raw c __builtin_choose_expr --> is the same as the ternary operator, but it won't evaluate the false branch. I can use these two builtins to check if the variable is a pointer, which in that case do nothing, and return a reference to the variable if it isn't a pointer. Then I can always use the <code>-></code> operator on the variable. This is mildly useful.
+        </p>
+
+        <!-- @code-lit c
+             #define at(v, index) \
+                 data((v))[(void)assert((index) < len((v))), (index)]
+          -->
+        <p>
+          This macro mimics <!-- @code-raw cpp std::vector::at -->. It indexes the array and will perform bounds checking. A benefit of using the builtin assert is that it can be disabled by passing <!-- @code-raw c -DNDEBUG --> to the compiler.
+        </p>
+        <!-- @code-lit c
+             Vec_define(void*, Arena);
+             
+             void Arena_append(Arena *arena, void *p) {
+                 if (len(arena) >= cap(arena)) {
+                     cap(arena) = cap(arena) == 0 ? 4 : cap(arena) * 2;
+                     data(arena) = realloc(data(arena)
+                                          ,cap(arena) * sizeof(void*));
+                 }
+                 len(arena) += 1;
+                 last(arena) = p;
+             }
+
+             void *Arena_realloc(Arena *arena, void *p, int n, int size) {
+                 if (p != NULL) {
+                     for (int i = 0; i < len(arena); ++i) {
+                         if (at(arena, i) == p) {
+                             void *new_p = realloc(p, n * size);
+                             at(arena, i) = new_p;
+                             return new_p;
+                         }
+                     }
+                     fprintf(stderr, "Don't do that, pls\n");
+                     exit(1);
+                 } else {
+                     void *new_p = calloc(n, size);
+                     Arena_append(arena, new_p);
+                     return new_p;
+                 }
+             }
+
+             void Arena_deinit(Arena *arena) {
+                 for (int i = 0; i < len(arena); ++i) free(at(arena, i));
+                 free(data(arena));
+             }
+          -->
+            <p>
+              To handle array lifetimes, I created these functions. I called it an <!-- @code-raw c Arena -->, because I was reading about arenas when I wrote this, but really, it's a garbage collector. <!-- @code-raw c Arena --> is just an array of void pointers, as a way to track the lifetimes of my arrays. To put a new array into the <!-- @code-raw c Arena -->, just pass the pointer to your array to with your <!-- @code-raw c Arena --> instance to <!-- @code-raw c Arena_append -->. <!-- @code-raw c Arena_realloc --> is just a wrapper around regular <!-- @code-raw c realloc -->. It will search through the <!-- @code-raw c Arena --> all call <!-- @code-raw c realloc --> on the matching pointer. <!-- @code-raw c Arena_deinit --> will simply free every pointer in <!-- @code-raw c Arena --> and and finally itself.
+            </p>
+            <!-- @code-lit c
+                 #define grow(vec, arena)                               \
+                     (cap(vec) = (cap(vec) == 0 ? 4 : cap(vec) * 2),    \
+                      data(vec) = Arena_realloc(maybe_ref(arena),       \
+                                                data(vec),              \
+                                                cap(vec),               \
+                                                sizeof(*data(vec))))
+
+                 #define append(vec, arena)                      \
+                     (len((vec)) >= cap((vec))                   \
+                      ? (grow((vec), (arena)) + len((vec))++)    \
+                      : (data((vec)) + len((vec))++))
+              -->
+            <p>
+              These are two helper macros to make appending elements easily. They need to be macros because C doesn't have polymorphism, this is the closest I'm going to get. <!-- @code-raw c append --> will return a pointer to the last element so it would be used as an lvalue. This works even when the array and arena structs are zeroed.
+            </p>
+            <!-- @code-lit c
+                 Vec_define(int, Vec_int);
+                 
+                 int main(void) {
+                     Vec_int array = {0};
+                     Arena arena = {0};
+                     *append(array, arena) = 1;
+                     assert(at(array, 0) == 1);
+                     Arena_deinit(&arena);
+                 }   
+              -->
+      </main>
+    </body>
+</html>
