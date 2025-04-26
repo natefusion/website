@@ -99,7 +99,6 @@ pre, code {
     background: #FFFFFF;
     padding-left: .1em;
     padding-right: .1em;
-    border: 2px solid;
     border-radius: 4px;
 }
 
@@ -111,8 +110,11 @@ pre, code {
     margin-top: 0.3rem;
     margin-bottom: 0;
     width: 20em;
-    vertical-align: baseline;
     position: relative;
+    border: 2px solid;
+    box-shadow: 2px 2px 0 0 var(--black);
+    border-radius: 4px;
+    padding-left: 0.3em;
 }
 
 .marginnote:before {
@@ -139,7 +141,8 @@ label.margin-toggle:not(.sidenote-number) {
 .sidenote-number:after,
 .sidenote:before {
     position: relative;
-    vertical-align: baseline;
+    
+
 }
 
 .sidenote-number:after {
@@ -150,10 +153,14 @@ label.margin-toggle:not(.sidenote-number) {
 
 .sidenote:before {
     content: counter(sidenote-counter) " ";
-    top: -0.5rem;
 }
 
-/* The mobile fallback: */
+.sidenote:before, .marginnote:before {
+    border-bottom: solid;
+    display: inherit;
+}
+
+/* before mobile fallback: */
 @media (max-width: 98em) { /* 98em == 50em + 24em + 20em + 4em (see .sidenote)*/
     label.margin-toggle:not(.sidenote-number) {
         display: inline;
@@ -170,7 +177,6 @@ label.margin-toggle:not(.sidenote-number) {
         clear: both;
         width: 95%;
         margin: 1rem 2.5%;
-        vertical-align: baseline;
         position: relative;
     }
 
