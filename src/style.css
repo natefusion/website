@@ -115,6 +115,8 @@ pre, code {
     box-shadow: 2px 2px 0 0 var(--black);
     border-radius: 4px;
     padding-left: 0.3em;
+    padding-right: 0.3em;
+    word-wrap: break-word;
 }
 
 .marginnote:before {
