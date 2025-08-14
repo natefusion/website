@@ -284,13 +284,22 @@ def main():
             shutil.copyfile(filename, output_path)
 
     for filename, file_contents in files:
+        output_path = Path(output_dir, Path(*filename.parts[1:]))
+        Path(output_path.parent).mkdir(parents=True, exist_ok=True)
+        if output_path.exists():
+            src = os.path.getmtime(filename)
+            dst = os.path.getmtime(output_path)
+            is_different_file = src > dst
+
+            if not is_different_file:
+                print(f'Skipping {filename}. It hasn\'t changed')
+                continue
+
         keywords, err = parse_file(filename, file_contents)
 
         if err:
             continue
         
-        output_path = Path(output_dir, Path(*filename.parts[1:]))
-        Path(output_path.parent).mkdir(parents=True, exist_ok=True)
         with open(output_path, 'w') as output_file:
             print('Writing to', output_path)
             replace_keywords(output_file, filename, file_contents, keywords)
