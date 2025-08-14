@@ -163,7 +163,7 @@ label.margin-toggle:not(.sidenote-number) {
 }
 
 /* before mobile fallback: */
-@media (max-width: 98em) { /* 98em == 50em + 24em + 20em + 4em (see .sidenote)*/
+@media (max-width: calc(50em/*width*/ + 24em/*sidenote margin right*/ + 20em/*sidenote width*/ + 4em/*sidenote border radius*/ + 1em/*one extra*/)) {
     label.margin-toggle:not(.sidenote-number) {
         display: inline;
     }
