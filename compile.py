@@ -24,22 +24,17 @@ class Keyword(Enum):
 
     
 def keyword_is_valid(keyword):
-    if keyword == 'code':
-        return Keyword.code
-    elif keyword == 'include':
-        return Keyword.include
-    elif keyword == 'datetime':
-        return Keyword.datetime
-    elif keyword == 'code-lit':
-        return Keyword.code_lit
-    elif keyword == 'code-raw':
-        return Keyword.code_raw
-    elif keyword == 'sidenote':
-        return Keyword.sidenote
-    elif keyword == 'marginnote':
-        return Keyword.marginnote
-    else:
-        return None
+    keyword_map = {
+        'code': Keyword.code,
+        'include': Keyword.include,
+        'datetime': Keyword.datetime,
+        'code-lit': Keyword.code_lit,
+        'code-raw': Keyword.code_raw,
+        'sidenote': Keyword.sidenote,
+        'marginnote': Keyword.marginnote,
+    }
+
+    return keyword_map.get(keyword)
 
 
 @dataclass
