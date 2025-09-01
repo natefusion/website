@@ -1,10 +1,6 @@
 :root {
-    --background: #e0dedb;/*#e8d1b3;*/
-    --black: #212121;
-    --red: #c11f32;
-    --blue: #174897;
-    --green: #00784c;
-    --yellow: #FFB700;
+    --background: hsl(36deg 7 87);
+    --black: hsl(0deg 0 13);
     --width: 50em;
 }
 
@@ -33,29 +29,40 @@ h3 {
     box-shadow: 2px 2px 0 0 var(--black);
     border-color: var(--black);
     color: var(--black);
+    text-shadow: 1px 1px 0px var(--shadow-color);
 }
 
 .red {
+    --red: hsl(353deg 72 44);
+    --shadow-color: hsl(353deg 72 34);
     background: var(--red);
     color: white;
 }
 
 .blue {
+    --blue: hsl(217deg 74 32);
+    --shadow-color: hsl(217deg 74 22);
     background: var(--blue);
     color: white;
+    
 }
 
 .green {
+    --green: hsl(158deg 100 24);
+    --shadow-color: hsl(158deg 100 14);
     background: var(--green);
     color: white;
 }
 
 .yellow {
+    --yellow: hsl(43deg 100 50);
+    --shadow-color: hsl(43deg 100 40);
     background: var(--yellow);
     color: var(--black);
 }
 
 a {
+  --shadow-color: hsl(36deg 7 77);
   flex: 1;
   outline-color: transparent;
   text-align: center;
@@ -63,9 +70,11 @@ a {
   color: var(--black);
   border: 2px dashed #0000;
   font-weight: bold;
+  text-shadow: 1px 1px 0px var(--shadow-color);
 }
 
 a:hover {
+    --shadow-color: hsl(0deg 0 3);
     border-radius: 4px;
     background: var(--black);
     color: white;
@@ -81,6 +90,7 @@ pre, code {
 }
 
 .me {
+    --shadow-color: hsl(0deg 0 3);
     border-radius: 4px;
     background: var(--black);
     color: white;
