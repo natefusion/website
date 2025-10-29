@@ -9,6 +9,7 @@ from enum import Enum
 from pathlib import Path
 import time
 import shutil
+import sys
 
 output_dir = Path('build')
 input_dir = Path('src')
@@ -275,7 +276,6 @@ def replace_keywords(output_file, filename, file_contents, keywords):
             print('\tGetting the date')
             include_data = get_datetime(filename)
 
-        output_file.write(file_contents[cursor:keyword_info.start])
         output_file.write(include_data)
         cursor = keyword_info.end
             
@@ -284,11 +284,17 @@ def replace_keywords(output_file, filename, file_contents, keywords):
 
             
 def main():
+    full_rebuild = False
+
+    if len(sys.argv) >= 2 and sys.argv[1] == 'full':
+        print('Doing a full rebuild')
+        full_rebuild = True
+
     if not output_dir.is_dir():
         os.makedirs(output_dir)
 
     files =  [(x,open(x).read()) for x in collect_files(input_dir, ['.html', '.css', '.js'])]
-    images = collect_files(input_dir, ['.png', '.jpg', '.ico', '.pdf'])
+    images = collect_files(input_dir, ['.png', '.jpg', '.ico', '.pdf', '.woff2'])
 
     for filename in images:
         output_path = Path(output_dir, Path(*filename.parts[1:]))
@@ -305,9 +311,10 @@ def main():
         if err:
             continue
 
-        if not has_file_changed(filename, output_path) and not has_included_file_changed(filename, output_path, file_contents, keywords):
-           print(f'Skipping {filename}. It hasn\'t changed');
-           continue
+        if not full_rebuild:
+            if not has_file_changed(filename, output_path) and not has_included_file_changed(filename, output_path, file_contents, keywords):
+                print(f'Skipping {filename}. It hasn\'t changed');
+                continue
         
         with open(output_path, 'w') as output_file:
             print('Writing to', output_path)
