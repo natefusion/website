@@ -22,7 +22,8 @@ class Keyword(Enum):
     sidenote = 5
     marginnote = 6
 
-    
+
+# Keyword['code'] == Keyword.code
 def keyword_is_valid(keyword):
     keyword_map = {
         'code': Keyword.code,
@@ -172,6 +173,27 @@ def adjust_indent(data, indent):
     return out.rstrip()
 
 
+def has_file_changed(filename, output_path):
+    if output_path.exists():
+        src = os.path.getmtime(filename)
+        dst = os.path.getmtime(output_path)
+        is_different_file = src > dst
+        return is_different_file
+    else:
+        return True
+
+
+def has_included_file_changed(filename, output_path, file_contents, keywords):
+    cwd = Path(filename.parent)
+    for keyword_info in keywords:
+        if Keyword.include == keyword_info.keyword:
+            keyword_str = file_contents[keyword_info.start:keyword_info.end]
+            included_filename = extract_filename(cwd, keyword_str)
+            if has_file_changed(included_filename, output_path):
+                return True
+    return False
+
+
 def replace_keywords(output_file, filename, file_contents, keywords):
     cwd = Path(filename.parent)
     cursor = 0
@@ -253,10 +275,12 @@ def replace_keywords(output_file, filename, file_contents, keywords):
             print('\tGetting the date')
             include_data = get_datetime(filename)
 
+        output_file.write(file_contents[cursor:keyword_info.start])
         output_file.write(include_data)
         cursor = keyword_info.end
             
     output_file.write(file_contents[cursor:])
+    return True
 
             
 def main():
@@ -264,36 +288,26 @@ def main():
         os.makedirs(output_dir)
 
     files =  [(x,open(x).read()) for x in collect_files(input_dir, ['.html', '.css', '.js'])]
-    images = collect_files(input_dir, ['.png', '.jpg', '.ico'])
+    images = collect_files(input_dir, ['.png', '.jpg', '.ico', '.pdf'])
 
     for filename in images:
         output_path = Path(output_dir, Path(*filename.parts[1:]))
         Path(output_path.parent).mkdir(parents=True, exist_ok=True)
-        if output_path.exists():
-            src = os.path.getmtime(filename)
-            dst = os.path.getmtime(output_path)
-            is_different_file = src > dst
-            
-        if not output_path.exists() or is_different_file:
-            print('Copying image:', filename)
-            shutil.copyfile(filename, output_path)
+        if has_file_changed(filename, output_path):
+           print('Copying image: ', filename)
+           shutil.copyfile(filename, output_path)
 
     for filename, file_contents in files:
         output_path = Path(output_dir, Path(*filename.parts[1:]))
         Path(output_path.parent).mkdir(parents=True, exist_ok=True)
-        if output_path.exists():
-            src = os.path.getmtime(filename)
-            dst = os.path.getmtime(output_path)
-            is_different_file = src > dst
-
-            if not is_different_file:
-                print(f'Skipping {filename}. It hasn\'t changed')
-                continue
-
         keywords, err = parse_file(filename, file_contents)
 
         if err:
             continue
+
+        if not has_file_changed(filename, output_path) and not has_included_file_changed(filename, output_path, file_contents, keywords):
+           print(f'Skipping {filename}. It hasn\'t changed');
+           continue
         
         with open(output_path, 'w') as output_file:
             print('Writing to', output_path)
