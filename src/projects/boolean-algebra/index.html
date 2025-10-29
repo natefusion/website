@@ -2,10 +2,20 @@
 <html lang="en-US">
     <head>
       <title>Blog: Boolean Algreba</title>
-      <!-- @include '/head.include.html' -->
+      <link rel="stylesheet" href="/style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" type="image/png" sizes="32x32" href="/ncp.png">
     </head>
     <body>
-      <!-- @include '/nav.include.html' -->
+      <nav>
+  <a href="/">ABOUT</a>
+  <a href="/projects">PROJECTS</a>
+  <a href="/writing">WRITING</a>
+  <a href="/links">LINKS</a>
+  <a href="/resume.pdf">RESUME</a>
+</nav>
+<hr>
+<script src="/nav.js"></script>
       <main>
         <h3 class="red">Boolean Algebra</h3>
         <a href="https://github.com/natefusion/boolean">https://github.com/natefusion/boolean</a>
@@ -13,7 +23,127 @@
         This project has some experiments with parsing of mathematical expressions, executing boolean algebra, and term rewriting.
         <h3>Expression parsing</h3>
         Expression parsing is handled by the following functions:
-        <!-- @code 'code-1.lisp' -->
+        <div class="highlight" style="background: #ffffff"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 1</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 2</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 3</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 4</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 5</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 6</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 7</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 8</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;"> 9</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">10</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">11</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">12</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">13</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">14</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">15</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">16</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">17</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">18</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">19</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">20</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">21</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">22</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">23</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">24</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">25</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">26</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">27</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">28</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">29</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">30</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">31</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">32</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">33</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">34</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">35</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">36</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">37</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">38</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">39</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">40</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">41</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">42</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">43</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">44</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">45</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">46</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">47</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">48</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">49</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">50</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">51</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">52</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">53</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">54</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">55</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">56</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">57</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">58</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">59</span>
+<span style="color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px;">60</span></pre></div></td><td class="code"><div><pre><span></span>(<span style="font-weight: bold; font-style: italic">defun</span> <span style="color: #666; font-weight: bold; font-style: italic">notation</span> (<span style="font-weight: bold; font-style: italic">exp</span> <span style="font-weight: bold">&amp;optional</span> <span style="color: #666; font-weight: bold; font-style: italic">vars</span>)
+  (<span style="font-weight: bold">let</span> (<span style="color: #666; font-weight: bold; font-style: italic">variables</span>)
+    (<span style="font-weight: bold">labels</span> ((<span style="color: #666; font-weight: bold; font-style: italic">infix-binding-power</span> (<span style="color: #666; font-weight: bold; font-style: italic">op</span>)
+               (<span style="font-weight: bold; font-style: italic">case</span> <span style="color: #666; font-weight: bold; font-style: italic">op</span>
+                 (<span style="font-weight: bold; font-style: italic">or</span> (<span style="font-weight: bold; font-style: italic">values</span> 1 2))
+                 ((<span style="font-weight: bold; font-style: italic">and</span> <span style="color: #666; font-weight: bold; font-style: italic">xor</span>) (<span style="font-weight: bold; font-style: italic">values</span> 3 4))
+                 (<span style="color: #666; font-weight: bold; font-style: italic">|)|</span> (<span style="font-weight: bold; font-style: italic">values</span> <span style="color: #666; font-weight: bold; font-style: italic">nil</span> <span style="color: #666; font-weight: bold; font-style: italic">nil</span> <span style="color: #666; font-style: italic">&#39;|)|</span>))
+                 (<span style="color: #666; font-weight: bold; font-style: italic">t</span> (<span style="font-weight: bold; font-style: italic">values</span> 3 4 <span style="color: #666; font-style: italic">&#39;implicit-*</span>))))
+             (<span style="color: #666; font-weight: bold; font-style: italic">postfix-binding-power</span> (<span style="color: #666; font-weight: bold; font-style: italic">op</span>)
+               (<span style="font-weight: bold; font-style: italic">case</span> <span style="color: #666; font-weight: bold; font-style: italic">op</span>
+                 (<span style="font-weight: bold; font-style: italic">not</span> 10)
+                 (<span style="color: #666; font-weight: bold; font-style: italic">t</span> <span style="color: #666; font-weight: bold; font-style: italic">nil</span>)))
+             (<span style="color: #666; font-weight: bold; font-style: italic">infix-&gt;prefix</span> (<span style="color: #666; font-weight: bold; font-style: italic">min-bp</span>)
+               (<span style="font-weight: bold; font-style: italic">loop</span> <span style="color: #666; font-weight: bold; font-style: italic">with</span> <span style="color: #666; font-weight: bold; font-style: italic">lhs</span> <span style="font-weight: bold; font-style: italic">=</span> (<span style="font-weight: bold">let</span> ((<span style="color: #666; font-weight: bold; font-style: italic">lhs</span> (<span style="font-weight: bold; font-style: italic">pop</span> <span style="font-weight: bold; font-style: italic">exp</span>)))
+                                  (<span style="font-weight: bold; font-style: italic">case</span> <span style="color: #666; font-weight: bold; font-style: italic">lhs</span>
+                                    (<span style="color: #666; font-weight: bold; font-style: italic">|(|</span> (<span style="font-weight: bold; font-style: italic">prog1</span> (<span style="color: #666; font-weight: bold; font-style: italic">infix-&gt;prefix</span> 0)
+                                           (<span style="font-weight: bold; font-style: italic">unless</span> (<span style="font-weight: bold; font-style: italic">eq</span> (<span style="font-weight: bold; font-style: italic">pop</span> <span style="font-weight: bold; font-style: italic">exp</span>) <span style="color: #666; font-style: italic">&#39;|)|</span>)
+                                             (<span style="font-weight: bold; font-style: italic">error</span> <span style="color: #666; font-style: italic">&quot;No closing parenthesis somewhere lol&quot;</span>))))
+                                    ((<span style="font-weight: bold; font-style: italic">or</span> <span style="font-weight: bold; font-style: italic">and</span> <span style="color: #666; font-weight: bold; font-style: italic">xor</span>) (<span style="font-weight: bold; font-style: italic">list</span> <span style="color: #666; font-weight: bold; font-style: italic">lhs</span> (<span style="color: #666; font-weight: bold; font-style: italic">infix-&gt;prefix</span> <span style="color: #666; font-weight: bold; font-style: italic">lhs</span>)))
+                                    (<span style="color: #666; font-weight: bold; font-style: italic">t</span> <span style="color: #666; font-weight: bold; font-style: italic">lhs</span>)))
+                     <span style="color: #666; font-weight: bold; font-style: italic">for</span> <span style="color: #666; font-weight: bold; font-style: italic">op</span> <span style="font-weight: bold; font-style: italic">=</span> (<span style="font-weight: bold; font-style: italic">car</span> <span style="font-weight: bold; font-style: italic">exp</span>)
+                     <span style="font-weight: bold; font-style: italic">do</span> (<span style="font-weight: bold; font-style: italic">unless</span> <span style="color: #666; font-weight: bold; font-style: italic">op</span> (<span style="font-weight: bold; font-style: italic">loop-finish</span>))
+                        (<span style="font-weight: bold">block</span> <span style="color: #666; font-weight: bold; font-style: italic">thing</span>
+                          (<span style="font-weight: bold; font-style: italic">multiple-value-bind</span> (<span style="color: #666; font-weight: bold; font-style: italic">lhs-bp</span>) (<span style="color: #666; font-weight: bold; font-style: italic">postfix-binding-power</span> <span style="color: #666; font-weight: bold; font-style: italic">op</span>)
+                            (<span style="font-weight: bold; font-style: italic">when</span> <span style="color: #666; font-weight: bold; font-style: italic">lhs-bp</span>
+                              (<span style="font-weight: bold; font-style: italic">when</span> (<span style="font-weight: bold; font-style: italic">&lt;</span> <span style="color: #666; font-weight: bold; font-style: italic">lhs-bp</span> <span style="color: #666; font-weight: bold; font-style: italic">min-bp</span>)
+                                (<span style="font-weight: bold; font-style: italic">loop-finish</span>))
+                              (<span style="font-weight: bold; font-style: italic">pop</span> <span style="font-weight: bold; font-style: italic">exp</span>)
+                              (<span style="font-weight: bold; font-style: italic">setf</span> <span style="color: #666; font-weight: bold; font-style: italic">lhs</span> (<span style="font-weight: bold; font-style: italic">list</span> <span style="color: #666; font-weight: bold; font-style: italic">op</span> <span style="color: #666; font-weight: bold; font-style: italic">lhs</span>))
+                              (<span style="font-weight: bold">return-from</span> <span style="color: #666; font-weight: bold; font-style: italic">thing</span>)))
+                          (<span style="font-weight: bold; font-style: italic">multiple-value-bind</span> (<span style="color: #666; font-weight: bold; font-style: italic">lhs-bp</span> <span style="color: #666; font-weight: bold; font-style: italic">rhs-bp</span> <span style="font-weight: bold">special</span>) (<span style="color: #666; font-weight: bold; font-style: italic">infix-binding-power</span> <span style="color: #666; font-weight: bold; font-style: italic">op</span>)
+                            (<span style="font-weight: bold; font-style: italic">cond</span> ((<span style="font-weight: bold; font-style: italic">or</span> (<span style="font-weight: bold; font-style: italic">eq</span> <span style="font-weight: bold">special</span> <span style="color: #666; font-style: italic">&#39;|)|</span>) (<span style="font-weight: bold; font-style: italic">&lt;</span> <span style="color: #666; font-weight: bold; font-style: italic">lhs-bp</span> <span style="color: #666; font-weight: bold; font-style: italic">min-bp</span>))
+                                   (<span style="font-weight: bold; font-style: italic">loop-finish</span>))
+                                  ((<span style="font-weight: bold; font-style: italic">eq</span> <span style="font-weight: bold">special</span> <span style="color: #666; font-style: italic">&#39;implicit-*</span>)
+                                   (<span style="font-weight: bold; font-style: italic">setf</span> <span style="color: #666; font-weight: bold; font-style: italic">op</span> <span style="color: #666; font-style: italic">&#39;and</span>))
+                                  (<span style="color: #666; font-weight: bold; font-style: italic">t</span>
+                                   (<span style="font-weight: bold; font-style: italic">pop</span> <span style="font-weight: bold; font-style: italic">exp</span>)))
+                            (<span style="font-weight: bold; font-style: italic">setf</span> <span style="color: #666; font-weight: bold; font-style: italic">lhs</span> (<span style="font-weight: bold; font-style: italic">list</span> <span style="color: #666; font-weight: bold; font-style: italic">op</span> <span style="color: #666; font-weight: bold; font-style: italic">lhs</span> (<span style="color: #666; font-weight: bold; font-style: italic">infix-&gt;prefix</span> <span style="color: #666; font-weight: bold; font-style: italic">rhs-bp</span>)))))
+                     <span style="color: #666; font-weight: bold; font-style: italic">finally</span> (<span style="font-weight: bold; font-style: italic">return</span> <span style="color: #666; font-weight: bold; font-style: italic">lhs</span>)))
+             (<span style="color: #666; font-weight: bold; font-style: italic">lex</span> (<span style="font-weight: bold; font-style: italic">exp</span>)
+               (<span style="font-weight: bold; font-style: italic">loop</span> <span style="color: #666; font-weight: bold; font-style: italic">for</span> <span style="color: #666; font-weight: bold; font-style: italic">x</span> <span style="color: #666; font-weight: bold; font-style: italic">across</span> <span style="font-weight: bold; font-style: italic">exp</span>
+                     <span style="font-weight: bold; font-style: italic">append</span> (<span style="font-weight: bold">if</span> (<span style="font-weight: bold; font-style: italic">alpha-char-p</span> <span style="color: #666; font-weight: bold; font-style: italic">x</span>)
+                                (<span style="font-weight: bold">let</span> ((<span style="color: #666; font-weight: bold; font-style: italic">a</span> (<span style="font-weight: bold; font-style: italic">read-from-string</span> (<span style="font-weight: bold; font-style: italic">string</span> <span style="color: #666; font-weight: bold; font-style: italic">x</span>))))
+                                  (<span style="font-weight: bold; font-style: italic">pushnew</span> <span style="color: #666; font-weight: bold; font-style: italic">a</span> <span style="color: #666; font-weight: bold; font-style: italic">variables</span>)
+                                  (<span style="font-weight: bold; font-style: italic">list</span> <span style="color: #666; font-weight: bold; font-style: italic">a</span>))
+                                (<span style="font-weight: bold; font-style: italic">case</span> <span style="color: #666; font-weight: bold; font-style: italic">x</span>
+                                  ((<span style="color: #666; font-style: italic">#\&#39;</span>) &#39;(<span style="font-weight: bold; font-style: italic">not</span>))
+                                  ((<span style="color: #666; font-style: italic">#\+</span>) &#39;(<span style="font-weight: bold; font-style: italic">or</span>))
+                                  ((<span style="color: #666; font-style: italic">#\*</span>) &#39;(<span style="font-weight: bold; font-style: italic">and</span>))
+                                  ((<span style="color: #666; font-style: italic">#\^</span>) &#39;(<span style="color: #666; font-weight: bold; font-style: italic">xor</span>))
+                                  ((<span style="color: #666; font-style: italic">#\(</span>) &#39;(<span style="color: #666; font-weight: bold; font-style: italic">|(|</span>))
+                                  ((<span style="color: #666; font-style: italic">#\)</span>) &#39;(<span style="color: #666; font-weight: bold; font-style: italic">|)|</span>))
+                                  ((<span style="color: #666; font-style: italic">#\0</span>) &#39;(<span style="color: #666; font-weight: bold; font-style: italic">nil</span>))
+                                  ((<span style="color: #666; font-style: italic">#\1</span>) &#39;(<span style="color: #666; font-weight: bold; font-style: italic">t</span>))
+                                  ((<span style="color: #666; font-style: italic">#\space</span>))
+                                  (<span style="color: #666; font-weight: bold; font-style: italic">t</span> (<span style="font-weight: bold; font-style: italic">error</span> <span style="color: #666; font-style: italic">&quot;wot in tarnation is &#39;~a&#39; doing here&quot;</span> <span style="color: #666; font-weight: bold; font-style: italic">x</span>)))))))
+      (<span style="font-weight: bold; font-style: italic">setf</span> <span style="font-weight: bold; font-style: italic">exp</span> (<span style="color: #666; font-weight: bold; font-style: italic">lex</span> <span style="font-weight: bold; font-style: italic">exp</span>))
+      (<span style="font-weight: bold; font-style: italic">list</span> (<span style="font-weight: bold; font-style: italic">mapcar</span> (<span style="font-weight: bold">lambda</span> (<span style="color: #666; font-weight: bold; font-style: italic">x</span>) (<span style="font-weight: bold; font-style: italic">read-from-string</span> (<span style="font-weight: bold; font-style: italic">string</span> <span style="color: #666; font-weight: bold; font-style: italic">x</span>)))
+                    (<span style="font-weight: bold; font-style: italic">sort</span> (<span style="font-weight: bold; font-style: italic">union</span> <span style="color: #666; font-weight: bold; font-style: italic">vars</span> <span style="color: #666; font-weight: bold; font-style: italic">variables</span>) <span style="color: #666; font-weight: bold; font-style: italic">#&#39;var&lt;=</span>))
+                                                   (<span style="color: #666; font-weight: bold; font-style: italic">infix-&gt;prefix</span> 0)))))
+</pre></div></td></tr></table></div>
+
         <h3>Execution</h3>
         <h3>Term rewriting</h3>
       </main>

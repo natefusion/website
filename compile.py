@@ -11,8 +11,9 @@ import time
 import shutil
 import sys
 
-output_dir = Path('build')
+output_dir = Path('src')
 input_dir = Path('src')
+
 
 class Keyword(Enum):
     code = 0
@@ -75,15 +76,15 @@ def find_not(string, chars):
     return -1
 
 
-def collect_files(input_dir, filetypes_to_check):
+def collect_files():
     def valid_file(filename):
         suffixes = filename.suffixes
-        if len(suffixes) == 0:
+        if len(suffixes) == 2:
+            return suffixes[0] == '.frag' and suffixes[1] == '.html'
+        else:
             return False
-        regular_filetype = suffixes[-1] in filetypes_to_check
-        snippet_filetype = suffixes[0] == '.include'
-        return regular_filetype and not snippet_filetype
-    
+
+
     return list(filter(valid_file, list(Path(input_dir).rglob('*'))))
 
 
@@ -290,22 +291,15 @@ def main():
         print('Doing a full rebuild')
         full_rebuild = True
 
-    if not output_dir.is_dir():
-        os.makedirs(output_dir)
-
-    files =  [(x,open(x).read()) for x in collect_files(input_dir, ['.html', '.css', '.js'])]
-    images = collect_files(input_dir, ['.png', '.jpg', '.ico', '.pdf', '.woff2'])
-
-    for filename in images:
-        output_path = Path(output_dir, Path(*filename.parts[1:]))
-        Path(output_path.parent).mkdir(parents=True, exist_ok=True)
-        if has_file_changed(filename, output_path):
-           print('Copying image: ', filename)
-           shutil.copyfile(filename, output_path)
+    files =  [(x,open(x).read()) for x in collect_files()]
 
     for filename, file_contents in files:
-        output_path = Path(output_dir, Path(*filename.parts[1:]))
-        Path(output_path.parent).mkdir(parents=True, exist_ok=True)
+        filename_no_frag = Path(filename.stem).stem
+        if filename_no_frag == filename.parts[-2]:
+            output_path = Path(filename.parent, 'index.html')
+        else:
+            output_path = Path(filename.parent, f'{filename_no_frag}.html')
+
         keywords, err = parse_file(filename, file_contents)
 
         if err:
