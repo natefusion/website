@@ -204,6 +204,11 @@ label.margin-toggle:not(.sidenote-number) {
     }
 }
 
+@font-face {
+    font-family: 'Uiua386';
+    src: url('/fonts/Uiua386.ttf');
+}
+
 /* latin-ext */
 @font-face {
   font-family: 'Radio Canada';
