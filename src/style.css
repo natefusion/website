@@ -26,7 +26,8 @@ body {
     padding-right: 1.618%;
 }
 
-h3 {
+h1 {
+    font-size: 16pt;
     padding-left: 0.1em;
     margin-bottom: 0.5em;
     margin-top: 0.5em;
@@ -92,7 +93,7 @@ a:active {
 }
 
 pre, code {
-    font-family: "Roboto mono", monospace
+    font-family: "Uiua386", monospace;
 }
 
 .me {
