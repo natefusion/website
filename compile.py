@@ -23,6 +23,7 @@ class Keyword(Enum):
     code_raw = 4
     sidenote = 5
     marginnote = 6
+    toc = 7
 
 
 # Keyword['code'] == Keyword.code
@@ -35,6 +36,7 @@ def keyword_is_valid(keyword):
         'code-raw': Keyword.code_raw,
         'sidenote': Keyword.sidenote,
         'marginnote': Keyword.marginnote,
+        'toc': Keyword.toc,
     }
 
     return keyword_map.get(keyword)
@@ -276,6 +278,17 @@ def replace_keywords(output_file, filename, file_contents, keywords):
         elif Keyword.datetime == keyword_info.keyword:
             print('\tGetting the date')
             include_data = get_datetime(filename)
+
+        elif Keyword.toc == keyword_info.keyword:
+            print('\tGenerating Table of Contents')
+            toc_rel_path = file_contents[keyword_info.start_argument:keyword_info.end_argument]
+            if not toc_rel_path:
+                toc_path = cwd
+            else:
+                toc_path = extract_filename(cwd, toc_rel_path)
+            pages = [(str(Path('/', x.parent.relative_to(output_dir))), x.parent.stem) for x in toc_path.rglob('*/index.html')]
+            links = "\n".join([f"<a href='{x[0]}'>{x[1]}</a>" for x in pages])
+            include_data = f'<div class="toc">\n{links}\n</div>'
 
         output_file.write(include_data)
         cursor = keyword_info.end
