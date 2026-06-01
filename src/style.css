@@ -108,7 +108,16 @@ pre, code {
     border-radius: 4px;
     border: 2px solid;
     box-shadow: 2px 2px 0 0 var(--black);
-    overflow: auto;
+    overflow-x: scroll; /* Keep scrollbar slot always */
+    overflow-y: hidden;
+}
+
+.highlight:hover {
+    width: fit-content;
+    max-width: min(calc(100vw - 2rem), calc(50vw + 20em - 2rem));
+    min-width: 100%;
+    position: relative;
+    z-index: 2;
 }
 
 .highlightraw {
@@ -178,8 +187,18 @@ label.margin-toggle:not(.sidenote-number) {
     display: inherit;
 }
 
-/* before mobile fallback: */
-@media (max-width: calc(50em/*width*/ + 24em/*sidenote margin right*/ + 20em/*sidenote width*/ + 4em/*sidenote border radius*/ + 1em/*one extra*/)) {
+/*
+ * Fallback to mobile layout when viewport is too small to display the floating sidenote.
+ * Calculation:
+ * - Body width: 40em (centered, so left/right margins are equal)
+ * - Sidenote margin extension: 24em to the right of the body
+ * - To fit on screen, the right margin must be >= 24em.
+ * - Minimum required viewport width = BodyWidth + 2 * SidenoteExtension = 40em + 48em = 88em.
+ * - Since the body font-size is 16pt (21.33px) and media queries use the browser default 16px (12pt):
+ *   Scale factor = 16pt / 12pt = 1.3333.
+ * - Total in media query ems = 88em * 1.3333 + 2em (safety buffer) = 119.33em (~1910px).
+ */
+@media (max-width: calc((40em + 2 * 24em) * 1.3333 + 2em)) {
     label.margin-toggle:not(.sidenote-number) {
         display: inline;
     }
