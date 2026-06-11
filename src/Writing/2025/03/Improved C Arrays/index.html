@@ -68,36 +68,36 @@
       <div class="highlight" style="background: #ffffff"><pre><span></span> Vec_define(<span style="font-weight: bold">void</span>*, Arena);
  
  <span style="font-weight: bold">void</span> <span style="color: #666; font-weight: bold; font-style: italic">Arena_append</span>(Arena *arena, <span style="font-weight: bold">void</span> *p) {
- <span style="font-weight: bold">if</span> (len(arena) &gt;= cap(arena)) {
- cap(arena) = cap(arena) == 0 ? 4 : cap(arena) * 2;
- data(arena) = realloc(data(arena)
- ,cap(arena) * <span style="font-weight: bold">sizeof</span>(<span style="font-weight: bold">void</span>*));
+     <span style="font-weight: bold">if</span> (len(arena) &gt;= cap(arena)) {
+         cap(arena) = cap(arena) == 0 ? 4 : cap(arena) * 2;
+         data(arena) = realloc(data(arena)
+                              ,cap(arena) * <span style="font-weight: bold">sizeof</span>(<span style="font-weight: bold">void</span>*));
+     }
+     len(arena) += 1;
+     last(arena) = p;
  }
- len(arena) += 1;
- last(arena) = p;
- }
-
+ 
  <span style="font-weight: bold">void</span> *<span style="color: #666; font-weight: bold; font-style: italic">Arena_realloc</span>(Arena *arena, <span style="font-weight: bold">void</span> *p, <span style="font-weight: bold">int</span> n, <span style="font-weight: bold">int</span> size) {
- <span style="font-weight: bold">if</span> (p != <span style="font-weight: bold; font-style: italic">NULL</span>) {
- <span style="font-weight: bold">for</span> (<span style="font-weight: bold">int</span> i = 0; i &lt; len(arena); ++i) {
- <span style="font-weight: bold">if</span> (at(arena, i) == p) {
- <span style="font-weight: bold">void</span> *new_p = realloc(p, n * size);
- at(arena, i) = new_p;
- <span style="font-weight: bold">return</span> new_p;
+     <span style="font-weight: bold">if</span> (p != <span style="font-weight: bold; font-style: italic">NULL</span>) {
+         <span style="font-weight: bold">for</span> (<span style="font-weight: bold">int</span> i = 0; i &lt; len(arena); ++i) {
+             <span style="font-weight: bold">if</span> (at(arena, i) == p) {
+                 <span style="font-weight: bold">void</span> *new_p = realloc(p, n * size);
+                 at(arena, i) = new_p;
+                 <span style="font-weight: bold">return</span> new_p;
+             }
+         }
+         fprintf(stderr, <span style="color: #666; font-style: italic">&quot;Don&#39;t do that, pls\n&quot;</span>);
+         exit(1);
+     } <span style="font-weight: bold">else</span> {
+         <span style="font-weight: bold">void</span> *new_p = calloc(n, size);
+         Arena_append(arena, new_p);
+         <span style="font-weight: bold">return</span> new_p;
+     }
  }
- }
- fprintf(stderr, <span style="color: #666; font-style: italic">&quot;Don&#39;t do that, pls\n&quot;</span>);
- exit(1);
- } <span style="font-weight: bold">else</span> {
- <span style="font-weight: bold">void</span> *new_p = calloc(n, size);
- Arena_append(arena, new_p);
- <span style="font-weight: bold">return</span> new_p;
- }
- }
-
+ 
  <span style="font-weight: bold">void</span> <span style="color: #666; font-weight: bold; font-style: italic">Arena_deinit</span>(Arena *arena) {
- <span style="font-weight: bold">for</span> (<span style="font-weight: bold">int</span> i = 0; i &lt; len(arena); ++i) free(at(arena, i));
- free(data(arena));
+     <span style="font-weight: bold">for</span> (<span style="font-weight: bold">int</span> i = 0; i &lt; len(arena); ++i) free(at(arena, i));
+     free(data(arena));
  }
 </pre></div>
 
@@ -105,16 +105,16 @@
           To handle array lifetimes, I created these functions. I called it an <code class='highlightraw'>Arena</code>, because I was reading about arenas when I wrote this, but really, it's a garbage collector. <code class='highlightraw'>Arena</code> is just an array of void pointers, as a way to track the lifetimes of my arrays. To put a new array into the <code class='highlightraw'>Arena</code>, just pass the pointer to your array to with your <code class='highlightraw'>Arena</code> instance to <code class='highlightraw'>Arena_append</code>. <code class='highlightraw'>Arena_realloc</code> is just a wrapper around regular <code class='highlightraw'>realloc</code>. It will search through the <code class='highlightraw'>Arena</code> all call <code class='highlightraw'>realloc</code> on the matching pointer. <code class='highlightraw'>Arena_deinit</code> will simply free every pointer in <code class='highlightraw'>Arena</code> and and finally itself.
         </p>
         <div class="highlight" style="background: #ffffff"><pre><span></span> <span style="color: #888; font-weight: bold">#define grow(vec, arena)                               \</span>
-<span style="color: #888; font-weight: bold"> (cap(vec) = (cap(vec) == 0 ? 4 : cap(vec) * 2),    \</span>
-<span style="color: #888; font-weight: bold"> data(vec) = Arena_realloc(maybe_ref(arena),       \</span>
-<span style="color: #888; font-weight: bold"> data(vec),              \</span>
-<span style="color: #888; font-weight: bold"> cap(vec),               \</span>
-<span style="color: #888; font-weight: bold"> sizeof(*data(vec))))</span>
+<span style="color: #888; font-weight: bold">     (cap(vec) = (cap(vec) == 0 ? 4 : cap(vec) * 2),    \</span>
+<span style="color: #888; font-weight: bold">      data(vec) = Arena_realloc(maybe_ref(arena),       \</span>
+<span style="color: #888; font-weight: bold">                                data(vec),              \</span>
+<span style="color: #888; font-weight: bold">                                cap(vec),               \</span>
+<span style="color: #888; font-weight: bold">                                sizeof(*data(vec))))</span>
 
  <span style="color: #888; font-weight: bold">#define append(vec, arena)                      \</span>
-<span style="color: #888; font-weight: bold"> (len((vec)) &gt;= cap((vec))                   \</span>
-<span style="color: #888; font-weight: bold"> ? (grow((vec), (arena)) + len((vec))++)    \</span>
-<span style="color: #888; font-weight: bold"> : (data((vec)) + len((vec))++))</span>
+<span style="color: #888; font-weight: bold">     (len((vec)) &gt;= cap((vec))                   \</span>
+<span style="color: #888; font-weight: bold">      ? (grow((vec), (arena)) + len((vec))++)    \</span>
+<span style="color: #888; font-weight: bold">      : (data((vec)) + len((vec))++))</span>
 </pre></div>
 
           <p>
@@ -123,11 +123,11 @@
           <div class="highlight" style="background: #ffffff"><pre><span></span> Vec_define(<span style="font-weight: bold">int</span>, Vec_int);
  
  <span style="font-weight: bold">int</span> <span style="color: #666; font-weight: bold; font-style: italic">main</span>(<span style="font-weight: bold">void</span>) {
- Vec_int array = {0};
- Arena arena = {0};
- *append(array, arena) = 1;
- assert(at(array, 0) == 1);
- Arena_deinit(&amp;arena);
+     Vec_int array = {0};
+     Arena arena = {0};
+     *append(array, arena) = 1;
+     assert(at(array, 0) == 1);
+     Arena_deinit(&amp;arena);
  }
 </pre></div>
 

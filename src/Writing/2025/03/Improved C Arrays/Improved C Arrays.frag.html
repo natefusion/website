@@ -55,36 +55,36 @@
            Vec_define(void*, Arena);
            
            void Arena_append(Arena *arena, void *p) {
-           if (len(arena) >= cap(arena)) {
-           cap(arena) = cap(arena) == 0 ? 4 : cap(arena) * 2;
-           data(arena) = realloc(data(arena)
-           ,cap(arena) * sizeof(void*));
+               if (len(arena) >= cap(arena)) {
+                   cap(arena) = cap(arena) == 0 ? 4 : cap(arena) * 2;
+                   data(arena) = realloc(data(arena)
+                                        ,cap(arena) * sizeof(void*));
+               }
+               len(arena) += 1;
+               last(arena) = p;
            }
-           len(arena) += 1;
-           last(arena) = p;
-           }
-
+           
            void *Arena_realloc(Arena *arena, void *p, int n, int size) {
-           if (p != NULL) {
-           for (int i = 0; i < len(arena); ++i) {
-           if (at(arena, i) == p) {
-           void *new_p = realloc(p, n * size);
-           at(arena, i) = new_p;
-           return new_p;
+               if (p != NULL) {
+                   for (int i = 0; i < len(arena); ++i) {
+                       if (at(arena, i) == p) {
+                           void *new_p = realloc(p, n * size);
+                           at(arena, i) = new_p;
+                           return new_p;
+                       }
+                   }
+                   fprintf(stderr, "Don't do that, pls\n");
+                   exit(1);
+               } else {
+                   void *new_p = calloc(n, size);
+                   Arena_append(arena, new_p);
+                   return new_p;
+               }
            }
-           }
-           fprintf(stderr, "Don't do that, pls\n");
-           exit(1);
-           } else {
-           void *new_p = calloc(n, size);
-           Arena_append(arena, new_p);
-           return new_p;
-           }
-           }
-
+           
            void Arena_deinit(Arena *arena) {
-           for (int i = 0; i < len(arena); ++i) free(at(arena, i));
-           free(data(arena));
+               for (int i = 0; i < len(arena); ++i) free(at(arena, i));
+               free(data(arena));
            }
         -->
         <p>
@@ -92,16 +92,16 @@
         </p>
         <!-- @code-lit c
              #define grow(vec, arena)                               \
-             (cap(vec) = (cap(vec) == 0 ? 4 : cap(vec) * 2),    \
-             data(vec) = Arena_realloc(maybe_ref(arena),       \
-             data(vec),              \
-             cap(vec),               \
-             sizeof(*data(vec))))
+                 (cap(vec) = (cap(vec) == 0 ? 4 : cap(vec) * 2),    \
+                  data(vec) = Arena_realloc(maybe_ref(arena),       \
+                                            data(vec),              \
+                                            cap(vec),               \
+                                            sizeof(*data(vec))))
 
              #define append(vec, arena)                      \
-             (len((vec)) >= cap((vec))                   \
-             ? (grow((vec), (arena)) + len((vec))++)    \
-             : (data((vec)) + len((vec))++))
+                 (len((vec)) >= cap((vec))                   \
+                  ? (grow((vec), (arena)) + len((vec))++)    \
+                  : (data((vec)) + len((vec))++))
           -->
           <p>
             These are two helper macros to make appending elements easily. They need to be macros because C doesn't have polymorphism, this is the closest I'm going to get. <!-- @code-raw c append --> will return a pointer to the last element so it would be used as an lvalue. This works even when the array and arena structs are zeroed.
@@ -110,11 +110,11 @@
                Vec_define(int, Vec_int);
                
                int main(void) {
-               Vec_int array = {0};
-               Arena arena = {0};
-               *append(array, arena) = 1;
-               assert(at(array, 0) == 1);
-               Arena_deinit(&arena);
+                   Vec_int array = {0};
+                   Arena arena = {0};
+                   *append(array, arena) = 1;
+                   assert(at(array, 0) == 1);
+                   Arena_deinit(&arena);
                }   
             -->
     </main>
