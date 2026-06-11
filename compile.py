@@ -26,20 +26,12 @@ class Keyword(Enum):
     toc = 7
 
 
-# Keyword['code'] == Keyword.code
 def keyword_is_valid(keyword):
-    keyword_map = {
-        'code': Keyword.code,
-        'include': Keyword.include,
-        'datetime': Keyword.datetime,
-        'code-lit': Keyword.code_lit,
-        'code-raw': Keyword.code_raw,
-        'sidenote': Keyword.sidenote,
-        'marginnote': Keyword.marginnote,
-        'toc': Keyword.toc,
-    }
-
-    return keyword_map.get(keyword)
+    parsed_keyword = keyword.replace('-', '_')
+    try:
+        return Keyword[parsed_keyword]
+    except BaseException:
+        return None
 
 
 @dataclass
