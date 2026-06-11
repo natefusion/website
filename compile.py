@@ -5,7 +5,7 @@ from pygments import highlight
 from pygments.lexers import get_lexer_for_filename, get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 from dataclasses import dataclass
-from enum import Enum
+from enum import Enum, auto
 from pathlib import Path
 import time
 import shutil
@@ -16,14 +16,14 @@ input_dir = Path('src')
 
 
 class Keyword(Enum):
-    code = 0
-    include = 1
-    datetime = 2
-    code_lit = 3
-    code_raw = 4
-    sidenote = 5
-    marginnote = 6
-    toc = 7
+    code = auto()
+    include = auto()
+    datetime = auto()
+    code_lit = auto()
+    code_raw = auto()
+    sidenote = auto()
+    marginnote = auto()
+    toc = auto()
 
 
 def keyword_is_valid(keyword):
