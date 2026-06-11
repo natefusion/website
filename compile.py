@@ -24,6 +24,7 @@ class Keyword(Enum):
     sidenote = auto()
     marginnote = auto()
     toc = auto()
+    title = auto()
 
 
 def keyword_is_valid(keyword):
@@ -93,14 +94,15 @@ def extract_filename(cwd, substr):
 
 
 def locate_keyword(filename, file_contents, i):
-    start_str = '<!-- @'
+    start_str = '<!-- '
+    end_str = '-->'
+
     start = file_contents[i:].find(start_str)
     if start == -1:
         return None, False
 
     start += i
-    end_str = '-->'
-    end = file_contents[start:].find('-->')
+    end = file_contents[start:].find(end_str)
     if end == -1:
         print(f'Error:\n{filename}:\n{file_contents[start:]}\nThe comment didn\'t end!')
         return None, True
@@ -109,9 +111,16 @@ def locate_keyword(filename, file_contents, i):
     keyword_start = start + len(start_str)
     keyword_end = keyword_start + file_contents[keyword_start:].find(' ')
     raw_keyword = file_contents[keyword_start:keyword_end]
-    keyword = keyword_is_valid(raw_keyword)
+
+    should_be_at_sign = raw_keyword[0]
+    if should_be_at_sign != '@':
+        print(f'\tError: {filename}:\n\t\t{file_contents[start:end]}\n\t\tInvalid keyword \'{raw_keyword}\' on the above line\n\t\tHint: You forgot the \'@\'!\n')
+        return None, True
+
+    without_at_sign = raw_keyword[1:]
+    keyword = keyword_is_valid(without_at_sign)
     if keyword == None:
-        print(f'Error:\n{filename}:\n{file_contents[start:end]}\nInvalid keyword \'{keyword}\' on the above line')
+        print(f'\tError:\n{filename}:\n{file_contents[start:end]}\nInvalid keyword \'{raw_keyword}\' on the above line\n')
         return None, True
     else:
         return Keyword_Info(keyword=keyword,
@@ -213,7 +222,7 @@ def replace_keywords(output_file, filename, file_contents, keywords):
                 include_data = read_file_skip_newline(include_file)
                         
         elif Keyword.code == keyword_info.keyword:
-            print('\thighlighting code')
+            print('\tHighlighting code')
             keyword_str = file_contents[keyword_info.start:keyword_info.end]
             code_path = extract_filename(cwd, keyword_str)
             with open(code_path) as include_file:
@@ -223,7 +232,7 @@ def replace_keywords(output_file, filename, file_contents, keywords):
                 include_data = highlight(raw_data, lexer, formatter)
 
         elif Keyword.code_lit == keyword_info.keyword:
-            print('\thighlighting code')
+            print('\tHighlighting code')
             data = file_contents[keyword_info.start_argument:keyword_info.end_argument]
             language_end = find(data, [' ', '\t', '\n'])
             language = data[:language_end]
@@ -237,7 +246,7 @@ def replace_keywords(output_file, filename, file_contents, keywords):
             include_data = highlight(raw_code, lexer, formatter)
 
         elif Keyword.code_raw == keyword_info.keyword:
-            print('\thighlighting code')
+            print('\tHighlighting code')
             data = file_contents[keyword_info.start_argument:keyword_info.end_argument]
             language_end = find(data, [' ', '\t', '\n'])
             language = data[:language_end]
@@ -272,7 +281,7 @@ def replace_keywords(output_file, filename, file_contents, keywords):
             include_data = get_datetime(filename)
 
         elif Keyword.toc == keyword_info.keyword:
-            print('\tGenerating Table of Contents')
+            print('\tGenerating table of contents')
             toc_rel_path = file_contents[keyword_info.start_argument:keyword_info.end_argument]
             if not toc_rel_path:
                 toc_path = cwd
@@ -281,6 +290,24 @@ def replace_keywords(output_file, filename, file_contents, keywords):
             pages = [(str(Path('/', x.parent.relative_to(output_dir))), x.parent.stem) for x in toc_path.rglob('*/index.html')]
             links = "\n".join([f"<a href='{x[0]}'>{x[1]}</a>" for x in pages])
             include_data = f'<div class="toc">\n{links}\n</div>'
+
+        elif Keyword.title == keyword_info.keyword:
+            parts = filename.parts
+            category = parts[1]
+            if len(parts) == 3:
+                # /src/category/category_page.frag.html
+                print('\tGenerating category title')
+                blog_entry = False
+            else:
+                # /src/category/some/sub/folders/Title of Blog Entry/...
+                print('\tGenerating blog entry title')
+                blog_entry = True
+            if blog_entry:
+                blog_title = filename.parent.parts[-1]
+                subtitle = f': {blog_title}'
+            else:
+                subtitle = ''
+            include_data = f'<title>NCP {category}{subtitle}</title>'
 
         output_file.write(include_data)
         cursor = keyword_info.end
