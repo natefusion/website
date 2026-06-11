@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en-US">
   <head>
-    <!-- @title -->
-    <!-- @include '/head.include.html' -->
+    <@title/>
+    <@include '/head.include.html' />
   </head>
   <body>
-    <!-- @include '/nav.include.html' -->
+    <@include '/nav.include.html' />
     <main>
       <h1 class="green">Improved C arrays</h1>
       <hr>
@@ -13,7 +13,9 @@
       <hr>
       <p>
         I took an operating systems course last semester. In that class my professor assigned a few C programming projects that would be a lot easier if C had builtin dynamic arrays. During that time I had been reading about implementing arenas and dynamic arrays in C,
-        <!-- @sidenote <a href="https://nullprogram.com/blog/2023/10/05/">https://nullprogram.com/blog/2023/10/05/</a> -->
+        <@sidenote>
+          <a href="https://nullprogram.com/blog/2023/10/05/">https://nullprogram.com/blog/2023/10/05/</a>
+        </@sidenote>
         so I thought why not make something for myself to make array handling easier for the assignment.
       </p>
       <p>

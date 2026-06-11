@@ -44,6 +44,7 @@ class Keyword_Info:
     start_argument: int
     end_argument: int
     keyword: Keyword
+    using_alt_syntax: bool
 
     
 # todo:
@@ -56,10 +57,11 @@ def get_datetime(filename):
 def find(string, chars):
     i = 0
     while i < len(string):
-        if string[i] in chars:
-            return i
+        for j, char in enumerate(chars):
+            if string[i:i+len(char)] == char:
+                return i, j
         i += 1
-    return -1
+    return -1, None
 
 
 def find_not(string, chars):
@@ -94,42 +96,62 @@ def extract_filename(cwd, substr):
 
 
 def locate_keyword(filename, file_contents, i):
-    start_str = '<!-- '
-    end_str = '-->'
-
-    start = file_contents[i:].find(start_str)
+    using_alt_method = False
+    start_str = ['<!-- ', '<@']
+    start, which = find(file_contents[i:], start_str)
     if start == -1:
         return None, False
 
+    if which == 1:
+        using_alt_method = True
+
+    if using_alt_method:
+        end_of_keyword_str = [' ', '\n', '\t', '>', '/']
+        end_str = ['</@', '/>']
+    else:
+        end_of_keyword_str = [' ', '\n', '\t']
+        end_str = ['-->']
+
     start += i
-    end = file_contents[start:].find(end_str)
+    end, which_end = find(file_contents[start:], end_str)
     if end == -1:
-        print(f'Error:\n{filename}:\n{file_contents[start:]}\nThe comment didn\'t end!')
+        print(f'\tError:\n\t{filename}:\n\t\t{file_contents[start:start + 50]}...\n\t\tThe tag didn\'t end!\n')
         return None, True
 
-    end += start + len(end_str)
-    keyword_start = start + len(start_str)
-    keyword_end = keyword_start + file_contents[keyword_start:].find(' ')
+    end += start
+    keyword_start = start + len(start_str[which])
+    keyword_end = keyword_start + find(file_contents[keyword_start:], end_of_keyword_str)[0]
     raw_keyword = file_contents[keyword_start:keyword_end]
 
-    should_be_at_sign = raw_keyword[0]
-    if should_be_at_sign != '@':
-        print(f'\tError: {filename}:\n\t\t{file_contents[start:end]}\n\t\tInvalid keyword \'{raw_keyword}\' on the above line\n\t\tHint: You forgot the \'@\'!\n')
-        return None, True
+    if using_alt_method and which_end == 0:
+        end_str_prefix = end_str[which_end]
+        end_str[which_end] = f'{end_str_prefix}{raw_keyword}>'
+        if file_contents[end:].find(end_str[which_end]) != 0:
+            print(f'\tError:\n\t{filename}:\n\t\t{file_contents[start:start + 50]}...\n\t\tThe tag didn\'t end!\n')
+            return None, True
 
-    without_at_sign = raw_keyword[1:]
-    keyword = keyword_is_valid(without_at_sign)
+    end += len(end_str[which_end])
+
+    if not using_alt_method:
+        should_be_at_sign = raw_keyword[0]
+        if should_be_at_sign != '@':
+            print(f'\tError: {filename}:\n\t\t{file_contents[start:end]}\n\t\tInvalid keyword \'{raw_keyword}\' on the above line\n\t\tHint: You forgot the \'@\'!\n')
+            return None, True
+        raw_keyword = raw_keyword[1:]
+
+    keyword = keyword_is_valid(raw_keyword)
     if keyword == None:
-        print(f'\tError:\n{filename}:\n{file_contents[start:end]}\nInvalid keyword \'{raw_keyword}\' on the above line\n')
+        print(f'\tError:\n\t\t{filename}:\n\t\t{file_contents[start:end]}\n\t\tInvalid keyword \'{raw_keyword}\' on the above line\n')
         return None, True
     else:
         return Keyword_Info(keyword=keyword,
                             start=start,
                             end=end,
                             start_argument=keyword_end+1,
-                            end_argument=end-len(end_str)-1,
+                            end_argument=end-len(end_str[which_end]),
                             start_keyword=keyword_start-1,
-                            end_keyword=keyword_end), False
+                            end_keyword=keyword_end,
+                            using_alt_syntax=using_alt_method), False
 
 
 def parse_file(filename, file_contents):
@@ -211,18 +233,24 @@ def replace_keywords(output_file, filename, file_contents, keywords):
             data = data[:-1]
         return data
 
-    for keyword_info in keywords:
+    for keyword_info_idx, keyword_info in enumerate(keywords):
+        def print_custom(*words):
+            if keyword_info.using_alt_syntax:
+                print(*words, f'[detected alternative syntax]')
+            else:
+                print(*words)
+
         include_data = None
         output_file.write(file_contents[cursor:keyword_info.start])
 
         if Keyword.include == keyword_info.keyword:
-            print('\tIncluding text')
+            print_custom('\tIncluding text')
             keyword_str = file_contents[keyword_info.start:keyword_info.end]
             with open(extract_filename(cwd, keyword_str)) as include_file:
                 include_data = read_file_skip_newline(include_file)
                         
         elif Keyword.code == keyword_info.keyword:
-            print('\tHighlighting code')
+            print_custom('\tHighlighting code')
             keyword_str = file_contents[keyword_info.start:keyword_info.end]
             code_path = extract_filename(cwd, keyword_str)
             with open(code_path) as include_file:
@@ -232,9 +260,9 @@ def replace_keywords(output_file, filename, file_contents, keywords):
                 include_data = highlight(raw_data, lexer, formatter)
 
         elif Keyword.code_lit == keyword_info.keyword:
-            print('\tHighlighting code')
-            data = file_contents[keyword_info.start_argument:keyword_info.end_argument]
-            language_end = find(data, [' ', '\t', '\n'])
+            print_custom('\tHighlighting code')
+            data = file_contents[keyword_info.start_argument:keyword_info.end_argument].strip(' ')
+            language_end,_ = find(data, [' ', '\t', '\n'])
             language = data[:language_end]
             raw_code = data[language_end+1:]
             if data[language_end] == '\n':
@@ -246,9 +274,9 @@ def replace_keywords(output_file, filename, file_contents, keywords):
             include_data = highlight(raw_code, lexer, formatter)
 
         elif Keyword.code_raw == keyword_info.keyword:
-            print('\tHighlighting code')
-            data = file_contents[keyword_info.start_argument:keyword_info.end_argument]
-            language_end = find(data, [' ', '\t', '\n'])
+            print_custom('\tHighlighting code')
+            data = file_contents[keyword_info.start_argument:keyword_info.end_argument].strip(' ')
+            language_end,_ = find(data, [' ', '\t', '\n'])
             language = data[:language_end]
             raw_code = data[language_end+1:]
             lexer = get_lexer_by_name(language)
@@ -260,8 +288,8 @@ def replace_keywords(output_file, filename, file_contents, keywords):
             include_data = f'<code class=\'{cssclass}\'>' + include_data + '</code>'
 
         elif Keyword.sidenote == keyword_info.keyword:
-            print('\tAdding sidenote')
-            data = file_contents[keyword_info.start_argument:keyword_info.end_argument]
+            print_custom('\tAdding sidenote')
+            data = file_contents[keyword_info.start_argument:keyword_info.end_argument].strip(' ')
             sidenote_counter += 1
             include_data = f"""
             <label for="sn-{sidenote_counter}" class="margin-toggle sidenote-number"></label>
@@ -270,18 +298,18 @@ def replace_keywords(output_file, filename, file_contents, keywords):
             """
 
         elif Keyword.marginnote == keyword_info.keyword:
-            print('\tAdding marginnote')
-            data = file_contents[keyword_info.start_argument:keyword_info.end_argument]
+            print_custom('\tAdding marginnote')
+            data = file_contents[keyword_info.start_argument:keyword_info.end_argument].strip(' ')
             include_data = f"""
             <span class="marginnote">{data}</span>
             """
 
         elif Keyword.datetime == keyword_info.keyword:
-            print('\tGetting the date')
+            print_custom('\tGetting the date')
             include_data = get_datetime(filename)
 
         elif Keyword.toc == keyword_info.keyword:
-            print('\tGenerating table of contents')
+            print_custom('\tGenerating table of contents')
             toc_rel_path = file_contents[keyword_info.start_argument:keyword_info.end_argument]
             if not toc_rel_path:
                 toc_path = cwd
@@ -296,11 +324,11 @@ def replace_keywords(output_file, filename, file_contents, keywords):
             category = parts[1]
             if len(parts) == 3:
                 # /src/category/category_page.frag.html
-                print('\tGenerating category title')
+                print_custom('\tGenerating category title')
                 blog_entry = False
             else:
                 # /src/category/some/sub/folders/Title of Blog Entry/...
-                print('\tGenerating blog entry title')
+                print_custom('\tGenerating blog entry title')
                 blog_entry = True
             if blog_entry:
                 blog_title = filename.parent.parts[-1]
