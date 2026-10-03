@@ -10,6 +10,7 @@ from pathlib import Path
 import time
 import shutil
 import sys
+import io
 
 output_dir = Path('src')
 input_dir = Path('src')
@@ -25,6 +26,7 @@ class Keyword(Enum):
     marginnote = auto()
     toc = auto()
     title = auto()
+    overview = auto()
 
 
 def keyword_is_valid(keyword):
@@ -227,6 +229,8 @@ def replace_keywords(output_file, filename, file_contents, keywords):
 
     sidenote_counter = 0
 
+    print_buffer = {}
+
     def read_file_skip_newline(f):
         data = f.read()
         if data[-1] == '\n':
@@ -235,10 +239,16 @@ def replace_keywords(output_file, filename, file_contents, keywords):
 
     for keyword_info_idx, keyword_info in enumerate(keywords):
         def print_custom(*words):
+            output_buffer = io.StringIO()
             if keyword_info.using_alt_syntax:
-                print(*words, f'[detected alternative syntax]')
+                print(*words, f'[detected alternative syntax]', end='', file=output_buffer)
             else:
-                print(*words)
+                print(*words, file=output_buffer, end='')
+            output_buffer = output_buffer.getvalue()
+            if output_buffer in print_buffer:
+                print_buffer[output_buffer] += 1
+            else:
+                print_buffer[output_buffer] = 1
 
         include_data = None
         output_file.write(file_contents[cursor:keyword_info.start])
@@ -337,10 +347,20 @@ def replace_keywords(output_file, filename, file_contents, keywords):
                 subtitle = ''
             include_data = f'<title>NCP {category}{subtitle}</title>'
 
+        elif Keyword.overview == keyword_info.keyword:
+            pass
+
         output_file.write(include_data)
         cursor = keyword_info.end
             
     output_file.write(file_contents[cursor:])
+
+    for log, num in print_buffer.items():
+        if num > 1:
+            print(log, f'(x{num})')
+        else:
+            print(log)
+        
     return True
 
             
@@ -371,7 +391,7 @@ def main():
                 continue
         
         with open(output_path, 'w') as output_file:
-            print('Writing to', output_path)
+            print('\nWriting to', output_path)
             replace_keywords(output_file, filename, file_contents, keywords)
 
 
