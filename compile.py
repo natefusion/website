@@ -11,6 +11,7 @@ import time
 import shutil
 import sys
 import io
+import subprocess
 
 output_dir = Path('src')
 input_dir = Path('src')
@@ -61,11 +62,10 @@ class Keyword_Info:
     using_alt_syntax: bool
 
 
-# todo:
-# <!-- @datetime -->
-# this will be replaced with the date the particular file was changed
 def get_datetime(filename):
-    return time.strftime("%A, %B %d %Y", time.strptime(time.ctime(os.path.getmtime(filename))))
+    result = subprocess.run(["git", "log", "-1", "--format=%ci", "--", filename], capture_output=True, text=True)
+    git_date = result.stdout.strip('\n')
+    return time.strftime("%A, %B %d %Y", time.strptime(git_date, "%Y-%m-%d %H:%M:%S %z")), git_date
 
 
 def red_text(text):
@@ -348,7 +348,8 @@ def replace_keywords(output_file, filename, file_contents, keywords):
 
         elif Keyword.datetime == keyword_info.keyword:
             print_custom('\tGetting the date')
-            include_data = get_datetime(filename)
+            human_date, full_date = get_datetime(filename)
+            include_data = f'<time datetime="{full_date}">Last Modified: {human_date}</time>'
 
         elif Keyword.toc == keyword_info.keyword:
             print_custom('\tGenerating table of contents')
