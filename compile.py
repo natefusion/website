@@ -27,6 +27,12 @@ class Keyword(Enum):
     toc = auto()
     title = auto()
     overview = auto()
+    h1 = auto()
+    h2 = auto()
+    h3 = auto()
+    h4 = auto()
+    h5 = auto()
+    h6 = auto()
 
 
 def keyword_is_valid(keyword):
@@ -37,6 +43,10 @@ def keyword_is_valid(keyword):
         return None
 
 
+def is_header(k):
+    return Keyword.h1 == k or Keyword.h2 == k or Keyword.h3 == k or Keyword.h4 == k or Keyword.h5 == k or Keyword.h6 == k
+
+
 @dataclass
 class Keyword_Info:
     start: int
@@ -45,15 +55,21 @@ class Keyword_Info:
     end_keyword: int
     start_argument: int
     end_argument: int
+    start_body: int
+    end_attribute: int
     keyword: Keyword
     using_alt_syntax: bool
 
-    
+
 # todo:
 # <!-- @datetime -->
 # this will be replaced with the date the particular file was changed
 def get_datetime(filename):
     return time.strftime("%A, %B %d %Y", time.strptime(time.ctime(os.path.getmtime(filename))))
+
+
+def red_text(text):
+    return "\u001b[31m" + text + "\u001b[39m"
 
 
 def find(string, chars):
@@ -117,7 +133,7 @@ def locate_keyword(filename, file_contents, i):
     start += i
     end, which_end = find(file_contents[start:], end_str)
     if end == -1:
-        print(f'\tError:\n\t{filename}:\n\t\t{file_contents[start:start + 50]}...\n\t\tThe tag didn\'t end!\n')
+        print(f'\t{red_text("Error")}:\n\t{filename}:\n\t\t{file_contents[start:start + 50]}...\n\t\tThe tag didn\'t end!\n')
         return None, True
 
     end += start
@@ -129,7 +145,7 @@ def locate_keyword(filename, file_contents, i):
         end_str_prefix = end_str[which_end]
         end_str[which_end] = f'{end_str_prefix}{raw_keyword}>'
         if file_contents[end:].find(end_str[which_end]) != 0:
-            print(f'\tError:\n\t{filename}:\n\t\t{file_contents[start:start + 50]}...\n\t\tThe tag didn\'t end!\n')
+            print(f'\t{red_text("Error")}:\n\t{filename}:\n\t\t{file_contents[start:start + 50]}...\n\t\tThe tag didn\'t end!\n')
             return None, True
 
     end += len(end_str[which_end])
@@ -137,20 +153,34 @@ def locate_keyword(filename, file_contents, i):
     if not using_alt_method:
         should_be_at_sign = raw_keyword[0]
         if should_be_at_sign != '@':
-            print(f'\tError: {filename}:\n\t\t{file_contents[start:end]}\n\t\tInvalid keyword \'{raw_keyword}\' on the above line\n\t\tHint: You forgot the \'@\'!\n')
+            print(f'\t{red_text("Error")}: {filename}:\n\t\t{file_contents[start:end]}\n\t\tInvalid keyword \'{raw_keyword}\' on the above line\n\t\tHint: You forgot the \'@\'!\n')
             return None, True
         raw_keyword = raw_keyword[1:]
 
+    start_argument = keyword_end + 1
+    end_argument = end - len(end_str[which_end])
+
+    start_body=start_argument
+    end_attribute=start_argument
+    if using_alt_method and which_end == 0:
+        _start_body = file_contents[start_argument:end_argument].find('>')
+        if _start_body != -1:
+            start_body = _start_body + start_argument
+            end_attribute = start_body
+            start_body += 1
+
     keyword = keyword_is_valid(raw_keyword)
     if keyword == None:
-        print(f'\tError:\n\t\t{filename}:\n\t\t{file_contents[start:end]}\n\t\tInvalid keyword \'{raw_keyword}\' on the above line\n')
+        print(f'\t{red_text("Error")}:\n\t\t{filename}:\n\t\t{file_contents[start:end]}\n\t\tInvalid keyword \'{raw_keyword}\' on the above line\n')
         return None, True
     else:
         return Keyword_Info(keyword=keyword,
                             start=start,
                             end=end,
-                            start_argument=keyword_end+1,
-                            end_argument=end-len(end_str[which_end]),
+                            start_argument=start_argument,
+                            end_attribute=end_attribute,
+                            start_body=start_body,
+                            end_argument=end_argument,
                             start_keyword=keyword_start-1,
                             end_keyword=keyword_end,
                             using_alt_syntax=using_alt_method), False
@@ -229,6 +259,8 @@ def replace_keywords(output_file, filename, file_contents, keywords):
 
     sidenote_counter = 0
 
+    overview_headers = ''
+    overview_header_id_counter = 0
     print_buffer = {}
 
     def read_file_skip_newline(f):
@@ -347,12 +379,30 @@ def replace_keywords(output_file, filename, file_contents, keywords):
                 subtitle = ''
             include_data = f'<title>NCP {category}{subtitle}</title>'
 
-        elif Keyword.overview == keyword_info.keyword:
-            pass
+        elif is_header(keyword_info.keyword):
+            print_custom('\tGenerating Header')
 
-        output_file.write(include_data)
+            h = file_contents[keyword_info.start_keyword+1:keyword_info.end_keyword]
+            title = file_contents[keyword_info.start_body:keyword_info.end_argument]
+            args = file_contents[keyword_info.start_argument:keyword_info.end_attribute]
+            include_data = f'<{h} {args} id="overview-{overview_header_id_counter}">{title}</{h}>'
+            overview_headers += f'\n<a href="#overview-{overview_header_id_counter}">{title}</a>\n<br>'
+            overview_header_id_counter += 1
+
+        elif Keyword.overview == keyword_info.keyword:
+            print_custom('\tGenerating Overview')
+            if overview_headers:
+                include_data = f'<div class="overview">{overview_headers}\n</div>'
+                overview_headers = ''
+            else:
+                print(f"\t{red_text("Error")}: No headers found for overview. Remember @h[1-6] and to place it at the bottom of the page")
+
+        if include_data != None:
+            output_file.write(include_data)
+        else:
+            print(f"\t{red_text("Error")}: No include data for {str(keyword_info.keyword)}")
         cursor = keyword_info.end
-            
+
     output_file.write(file_contents[cursor:])
 
     for log, num in print_buffer.items():
@@ -389,7 +439,7 @@ def main():
             if not has_file_changed(filename, output_path) and not has_included_file_changed(filename, output_path, file_contents, keywords):
                 print(f'Skipping {filename}. It hasn\'t changed');
                 continue
-        
+
         with open(output_path, 'w') as output_file:
             print('\nWriting to', output_path)
             replace_keywords(output_file, filename, file_contents, keywords)

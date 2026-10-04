@@ -139,13 +139,32 @@ pre, code {
     border: 2px solid;
     box-shadow: 2px 2px 0 0 var(--black);
     border-radius: 4px;
-    padding-left: 0.3em;
-    padding-right: 0.3em;
+    padding: 0.3em;
     word-wrap: break-word;
 }
 
 .marginnote:before {
     content: "\235D  ";
+}
+
+.overview:before {
+    content: "Overview";
+}
+
+.overview {
+    float: left;
+    clear: left;
+    margin-left: -24em;
+    margin-top: 0;
+    margin-bottom: 0;
+    width: 20em;
+    position: fixed;
+    top: 1em;
+    border: 2px solid;
+    box-shadow: -2px 2px 0 0 var(--black);
+    border-radius: 4px;
+    padding: 0.3em;
+    word-wrap: break-word;
 }
 
 input.margin-toggle {
@@ -168,8 +187,6 @@ label.margin-toggle:not(.sidenote-number) {
 .sidenote-number:after,
 .sidenote:before {
     position: relative;
-    
-
 }
 
 .sidenote-number:after {
@@ -182,8 +199,9 @@ label.margin-toggle:not(.sidenote-number) {
     content: counter(sidenote-counter) " ";
 }
 
-.sidenote:before, .marginnote:before {
+.sidenote:before, .marginnote:before, .overview:before {
     border-bottom: solid;
+    margin-bottom: 0.3em;
     display: inherit;
 }
 
@@ -208,7 +226,8 @@ label.margin-toggle:not(.sidenote-number) {
     }
 
     .margin-toggle:checked + .sidenote,
-    .marginnote {
+    .marginnote,
+    .overview {
         display: block;
         float: left;
         clear: both;
