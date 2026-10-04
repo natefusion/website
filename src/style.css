@@ -1,5 +1,6 @@
 :root {
     --background: hsl(36deg 7 87);
+    --background-light: #ebe9e6;
     --black: hsl(0deg 0 13);
     --width: 40em;
 }
@@ -121,9 +122,7 @@ pre, code {
 }
 
 .highlightraw {
-    background: #FFFFFF;
-    padding-left: .1em;
-    padding-right: .1em;
+    background: var(--background-light);
     border-radius: 4px;
 }
 
