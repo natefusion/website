@@ -24,8 +24,8 @@ body {
     margin-right: auto;
     text-align: left;
     line-height: 1.4;
-    padding-left: 1.618%;
-    padding-right: 1.618%;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
 }
 
 h1 {
@@ -114,9 +114,11 @@ pre, code {
 }
 
 .highlight:hover {
-    width: fit-content;
-    max-width: min(calc(100vw - 2rem), calc(50vw + 20em - 2rem));
-    min-width: 100%;
+    --highlight-max-width: min(calc(100vw - 2rem), calc(50vw + 20em - 2rem));
+    box-sizing: border-box;
+    width: max-content;
+    max-width: var(--highlight-max-width);
+    min-width: min(100%, var(--highlight-max-width));
     position: relative;
     z-index: 2;
 }
@@ -130,15 +132,16 @@ pre, code {
 .marginnote {
     float: right;
     clear: right;
-    margin-right: -24em;
+    margin-right: calc(-25vw + 2em);
     margin-top: 0.3rem;
     margin-bottom: 0;
-    width: 20em;
+    width: 16em;
     position: relative;
     border: 2px solid;
     box-shadow: 2px 2px 0 0 var(--black);
     border-radius: 4px;
     padding: 0.3em;
+    box-sizing: border-box;
     word-wrap: break-word;
 }
 
@@ -153,16 +156,18 @@ pre, code {
 .overview {
     float: left;
     clear: left;
-    margin-left: -24em;
+    margin-left: 0;
     margin-top: 0;
     margin-bottom: 0;
-    width: 20em;
+    width: 16em;
     position: fixed;
+    left: calc(25vw - 18em);
     top: 1em;
     border: 2px solid;
     box-shadow: -2px 2px 0 0 var(--black);
     border-radius: 4px;
     padding: 0.3em;
+    box-sizing: border-box;
     word-wrap: break-word;
 }
 
@@ -208,14 +213,21 @@ label.margin-toggle:not(.sidenote-number) {
  * Fallback to mobile layout when viewport is too small to display the floating sidenote.
  * Calculation:
  * - Body width: 40em (centered, so left/right margins are equal)
- * - Sidenote margin extension: 24em to the right of the body
- * - To fit on screen, the right margin must be >= 24em.
- * - Minimum required viewport width = BodyWidth + 2 * SidenoteExtension = 40em + 48em = 88em.
+ * - Sidenote margin extension: 16em to the right of the body
+ * - To fit on screen, each side margin must be >= 16em.
+ * - Minimum required viewport width = BodyWidth + 2 * SidenoteExtension = 40em + 32em = 72em.
  * - Since the body font-size is 16pt (21.33px) and media queries use the browser default 16px (12pt):
  *   Scale factor = 16pt / 12pt = 1.3333.
- * - Total in media query ems = 88em * 1.3333 + 2em (safety buffer) = 119.33em (~1910px).
+ * - Total in media query ems = 72em * 1.3333 + 1em (safety buffer) = 97em (~1552px).
  */
-@media (max-width: calc((40em + 2 * 24em) * 1.3333 + 2em)) {
+@media (max-width: calc((40em + 2 * 16em) * 1.3333 + 1em)) {
+    .highlight:hover {
+        box-sizing: content-box;
+        width: auto;
+        max-width: none;
+        min-width: 0;
+    }
+
     label.margin-toggle:not(.sidenote-number) {
         display: inline;
     }
@@ -227,12 +239,17 @@ label.margin-toggle:not(.sidenote-number) {
     .margin-toggle:checked + .sidenote,
     .marginnote,
     .overview {
-        display: block;
-        float: left;
+        float: unset;
         clear: both;
-        width: 95%;
-        margin: 1rem 2.5%;
+        margin: 1rem 0rem;
         position: relative;
+        left: auto;
+        top: unset;
+        display: block;
+        box-sizing: content-box;
+        width: auto;
+        max-width: none;
+        min-width: 0;
     }
 
     label.sidenote-number {
