@@ -261,6 +261,14 @@ def replace_keywords(output_file, filename, file_contents, keywords):
 
     overview_headers = ''
     overview_header_id_counter = 0
+    header_ids = {};
+    for keyword_info_idx, keyword_info in enumerate(keywords):
+        if is_header(keyword_info.keyword):
+            title = file_contents[keyword_info.start_body:keyword_info.end_argument]
+            overview_headers += f'\n<a href="#overview-{overview_header_id_counter}">{title}</a>\n<br>'
+            header_ids[keyword_info_idx] = overview_header_id_counter
+            overview_header_id_counter += 1
+
     print_buffer = {}
 
     def read_file_skip_newline(f):
@@ -386,17 +394,14 @@ def replace_keywords(output_file, filename, file_contents, keywords):
             h = file_contents[keyword_info.start_keyword+1:keyword_info.end_keyword]
             title = file_contents[keyword_info.start_body:keyword_info.end_argument]
             args = file_contents[keyword_info.start_argument:keyword_info.end_attribute]
-            include_data = f'<{h} {args} id="overview-{overview_header_id_counter}">{title}</{h}>'
-            overview_headers += f'\n<a href="#overview-{overview_header_id_counter}">{title}</a>\n<br>'
-            overview_header_id_counter += 1
+            include_data = f'<{h} {args} id="overview-{header_ids[keyword_info_idx]}">{title}</{h}>'
 
         elif Keyword.overview == keyword_info.keyword:
             print_custom('\tGenerating Overview')
             if overview_headers:
                 include_data = f'<div class="overview">{overview_headers}\n</div>'
-                overview_headers = ''
             else:
-                print(f"\t{red_text("Error")}: No headers found for overview. Remember @h[1-6] and to place it at the bottom of the page")
+                print(f"\t{red_text("Error")}: No headers found for overview.")
 
         if include_data != None:
             output_file.write(include_data)
